@@ -8,5 +8,6 @@ import { HouseholdService } from './services/household.service.js';
   imports: [DbModule],
   controllers: [HouseholdController],
   providers: [HouseholdService, HouseholdRepository],
+  exports: [HouseholdService],
 })
 export class HouseholdModule {}

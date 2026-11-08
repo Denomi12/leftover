@@ -1,13 +1,18 @@
 <script lang="ts">
+  import { page } from '$app/state';
   import { AppSidebar } from '#lib/features/app-shell/index.js';
   import * as Sidebar from '#lib/shared/ui/sidebar/index.js';
   import type { LayoutProps } from './$types';
 
-  let { children }: LayoutProps = $props();
+  let { data, children }: LayoutProps = $props();
+
+  const activeHouseholdId = $derived(
+    data.households.find(({ id }) => id === page.params.householdId)?.id,
+  );
 </script>
 
 <Sidebar.Provider>
-  <AppSidebar />
+  <AppSidebar households={data.households} {activeHouseholdId} />
   <Sidebar.Inset class="bg-background">
     <main class="flex w-full flex-1 flex-col gap-8 px-4 py-6 sm:px-10 sm:py-8">
       {@render children()}

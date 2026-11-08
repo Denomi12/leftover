@@ -9,11 +9,11 @@ import UsersIcon from '@lucide/svelte/icons/users';
 export interface NavItem {
   label: string;
   icon: Component;
-  href?: string;
+  path?: string;
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: 'Zaloga', icon: ArchiveIcon, href: '/app' },
+  { label: 'Zaloga', icon: ArchiveIcon, path: '' },
   { label: 'Načrt obrokov', icon: CalendarDaysIcon },
   { label: 'Nakupovalni seznam', icon: ShoppingCartIcon },
   { label: 'Statistika', icon: ChartColumnIcon },

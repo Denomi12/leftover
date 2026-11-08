@@ -1,0 +1,2 @@
+export const HOUSEHOLD_NAME_MIN_LENGTH = 1;
+export const HOUSEHOLD_NAME_MAX_LENGTH = 50;

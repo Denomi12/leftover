@@ -2,9 +2,22 @@
   import { page } from '$app/state';
   import LogOutIcon from '@lucide/svelte/icons/log-out';
   import { logout } from '#lib/features/auth/index.js';
+  import {
+    type Household,
+    HouseholdSwitcher,
+    householdPath,
+  } from '#lib/features/household/index.js';
   import { Logo } from '#lib/shared/components/logo/index.js';
   import * as Sidebar from '#lib/shared/ui/sidebar/index.js';
   import { NAV_ITEMS } from '../../constants/navigation.js';
+
+  let { households, activeHouseholdId }: { households: Household[]; activeHouseholdId?: string } =
+    $props();
+
+  const hrefFor = (path: string | undefined) =>
+    activeHouseholdId !== undefined && path !== undefined
+      ? householdPath(activeHouseholdId, path)
+      : undefined;
 
   const itemClass =
     'text-sidebar-foreground/80 hover:bg-transparent hover:text-foreground active:bg-transparent data-active:bg-transparent data-active:font-medium data-active:text-primary data-active:hover:text-primary';
@@ -15,15 +28,12 @@
     <div
       class="flex items-center justify-between gap-2 group-data-[collapsible=icon]:justify-center"
     >
-      <a
-        href="/app"
-        aria-label="Leftover, zaloga"
-        class="pl-1 group-data-[collapsible=icon]:hidden"
-      >
+      <a href="/app" aria-label="Leftover, domov" class="pl-1 group-data-[collapsible=icon]:hidden">
         <Logo />
       </a>
       <Sidebar.Trigger class="text-muted-foreground" />
     </div>
+    <HouseholdSwitcher {households} activeId={activeHouseholdId} />
   </Sidebar.Header>
 
   <Sidebar.Content>
@@ -34,15 +44,16 @@
       <Sidebar.GroupContent>
         <Sidebar.Menu>
           {#each NAV_ITEMS as item (item.label)}
+            {@const href = hrefFor(item.path)}
             <Sidebar.MenuItem>
-              {#if item.href}
+              {#if href}
                 <Sidebar.MenuButton
-                  isActive={page.url.pathname === item.href}
+                  isActive={page.url.pathname === href}
                   tooltipContent={item.label}
                   class={itemClass}
                 >
                   {#snippet child({ props })}
-                    <a href={item.href} {...props}>
+                    <a {href} {...props}>
                       <item.icon />
                       <span>{item.label}</span>
                     </a>
@@ -52,8 +63,10 @@
                 <Sidebar.MenuButton
                   aria-disabled="true"
                   tabindex={-1}
-                  tooltipContent={`${item.label} (kmalu)`}
-                  title="Kmalu na voljo"
+                  tooltipContent={item.label}
+                  title={item.path === undefined
+                    ? 'Kmalu na voljo'
+                    : 'Najprej ustvari gospodinjstvo'}
                   class={itemClass}
                 >
                   <item.icon />

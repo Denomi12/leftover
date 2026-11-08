@@ -1,0 +1,20 @@
+{
+  "name": "leftover",
+  "private": true,
+  "packageManager": "pnpm@11.9.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel run dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "prettier-plugin-svelte": "^3.4.0"
+  }
+}

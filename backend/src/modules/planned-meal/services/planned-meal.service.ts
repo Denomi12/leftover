@@ -32,7 +32,7 @@ export class PlannedMealService {
         unit: ingredient.unit,
       })),
     );
-    await this.shoppingItemService.addMissingIngredients(householdId);
+    await this.shoppingItemService.syncMissingIngredients(householdId);
     return toPlannedMealResponse(meal, await this.getStock(householdId));
   }
 
@@ -47,7 +47,7 @@ export class PlannedMealService {
     if (result.status === 'already-completed') {
       throw new ConflictException('Planned meal is already completed');
     }
-    await this.shoppingItemService.addMissingIngredients(householdId);
+    await this.shoppingItemService.syncMissingIngredients(householdId);
     return toPlannedMealResponse(result.meal, await this.getStock(householdId));
   }
 

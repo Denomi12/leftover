@@ -7,12 +7,25 @@
   import { cn } from '#lib/shared/utils.js';
   import { formatDay, formatMealCount, groupMealsByDay } from '../../lib/meal-plan.js';
   import type { PlannedMeal } from '../../types/planned-meal.js';
+  import CompleteMealDialog from '../complete-meal-dialog/complete-meal-dialog.svelte';
   import MealCard from '../meal-card/meal-card.svelte';
 
-  let { meals, canEdit, onadd }: { meals: PlannedMeal[]; canEdit: boolean; onadd: () => void } =
-    $props();
+  let {
+    meals,
+    householdId,
+    canEdit,
+    onadd,
+  }: { meals: PlannedMeal[]; householdId: string; canEdit: boolean; onadd: () => void } = $props();
+
+  let completeOpen = $state(false);
+  let completingMeal = $state<PlannedMeal | null>(null);
 
   const days = $derived(groupMealsByDay(meals));
+
+  function openComplete(meal: PlannedMeal) {
+    completingMeal = meal;
+    completeOpen = true;
+  }
 </script>
 
 {#if days.length === 0}
@@ -57,10 +70,14 @@
         </header>
         <div class="grid items-start gap-4 sm:grid-cols-2 2xl:grid-cols-3">
           {#each day.meals as meal (meal.id)}
-            <MealCard {meal} />
+            <MealCard {meal} {canEdit} oncomplete={openComplete} />
           {/each}
         </div>
       </section>
     {/each}
   </div>
+{/if}
+
+{#if canEdit}
+  <CompleteMealDialog bind:open={completeOpen} {householdId} meal={completingMeal} />
 {/if}

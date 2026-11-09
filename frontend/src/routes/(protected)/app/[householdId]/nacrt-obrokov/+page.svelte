@@ -40,7 +40,12 @@
   {/snippet}
 </AppHeader>
 
-<MealPlan meals={data.meals} {canEdit} onadd={() => (addOpen = true)} />
+<MealPlan
+  meals={data.meals}
+  householdId={data.household.id}
+  {canEdit}
+  onadd={() => (addOpen = true)}
+/>
 
 {#if canEdit}
   <PlannedMealDialog bind:open={addOpen} householdId={data.household.id} />

@@ -66,7 +66,9 @@ export class ShoppingItemService {
 
   async deleteShoppingItem(householdId: string, shoppingItemId: string): Promise<void> {
     const item = await this.findShoppingItem(householdId, shoppingItemId);
-    assertManual(item);
+    if (!item.completed) {
+      assertManual(item);
+    }
     await this.shoppingItemRepository.delete(item.id);
   }
 

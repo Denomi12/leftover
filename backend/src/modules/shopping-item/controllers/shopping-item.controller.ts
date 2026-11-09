@@ -87,7 +87,8 @@ export class ShoppingItemController {
   @ApiParam({ name: SHOPPING_ITEM_ID_PARAM, format: 'uuid' })
   @ApiNoContentResponse()
   @ApiForbiddenResponse({
-    description: 'Guests cannot delete shopping items; items from the meal plan cannot be deleted',
+    description:
+      'Guests cannot delete shopping items; items from the meal plan can only be deleted once bought',
   })
   @ApiNotFoundResponse({ description: 'Shopping item does not exist in this household' })
   deleteShoppingItem(

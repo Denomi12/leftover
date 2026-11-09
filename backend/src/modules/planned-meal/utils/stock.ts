@@ -48,3 +48,39 @@ export function getMissingQuantity(stock: Stock, { name, quantity, unit }: Stock
 export function fromBaseThousandths(base: number, unit: FoodUnit): number {
   return Math.ceil(base / UNIT_SCALE[unit].factor) / THOUSANDTHS;
 }
+
+export interface StockItem extends StockAmount {
+  id: string;
+}
+
+export interface StockConsumption {
+  updates: { id: string; quantity: string }[];
+  deletions: string[];
+}
+
+export function planConsumption(
+  ingredients: StockAmount[],
+  orderedItems: StockItem[],
+): StockConsumption {
+  const required = buildStock(ingredients);
+  const consumption: StockConsumption = { updates: [], deletions: [] };
+  for (const item of orderedItems) {
+    const key = stockKey(item.name, item.unit);
+    const needed = required.get(key) ?? 0;
+    if (needed <= 0) {
+      continue;
+    }
+
+    const available = toBaseThousandths(item.quantity, item.unit);
+    const used = Math.min(needed, available);
+    required.set(key, needed - used);
+
+    const remaining = Math.round((available - used) / UNIT_SCALE[item.unit].factor);
+    if (remaining <= 0) {
+      consumption.deletions.push(item.id);
+    } else {
+      consumption.updates.push({ id: item.id, quantity: (remaining / THOUSANDTHS).toFixed(3) });
+    }
+  }
+  return consumption;
+}

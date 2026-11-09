@@ -72,8 +72,8 @@ export class ShoppingItemService {
     await this.shoppingItemRepository.delete(item.id);
   }
 
-  addMissingIngredients(householdId: string): Promise<void> {
-    return this.shoppingItemRepository.addMissingIngredients(householdId);
+  syncMissingIngredients(householdId: string): Promise<void> {
+    return this.shoppingItemRepository.syncMissingIngredients(householdId);
   }
 
   private async findShoppingItem(

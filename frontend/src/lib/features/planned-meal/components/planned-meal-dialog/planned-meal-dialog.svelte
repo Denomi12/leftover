@@ -1,9 +1,10 @@
 <script lang="ts">
   import { invalidate } from '$app/navigation';
-  import type { DateValue } from '@internationalized/date';
+  import { parseDate, type DateValue } from '@internationalized/date';
   import CalendarIcon from '@lucide/svelte/icons/calendar';
   import PlusIcon from '@lucide/svelte/icons/plus';
   import XIcon from '@lucide/svelte/icons/x';
+  import { untrack } from 'svelte';
   import { toast } from 'svelte-sonner';
   import {
     currentDate,
@@ -20,21 +21,29 @@
   import * as Select from '#lib/shared/ui/select/index.js';
   import { Spinner } from '#lib/shared/ui/spinner/index.js';
   import { plannedMealApi } from '../../api/planned-meal.api.js';
-  import { mapCreatePlannedMealError } from '../../api/planned-meal-errors.js';
+  import { mapSavePlannedMealError } from '../../api/planned-meal-errors.js';
   import { formatDay, PLANNED_MEALS_DEPENDENCY } from '../../lib/meal-plan.js';
   import {
     createPlannedMealSchema,
     PLANNED_MEAL_INGREDIENTS_MAX,
   } from '../../validations/planned-meal.js';
+  import type { PlannedMeal } from '../../types/planned-meal.js';
 
-  let { open = $bindable(false), householdId }: { open?: boolean; householdId: string } = $props();
+  let {
+    open = $bindable(false),
+    householdId,
+    meal = null,
+  }: { open?: boolean; householdId: string; meal?: PlannedMeal | null } = $props();
 
-  const newIngredient = () => ({
-    key: crypto.randomUUID(),
-    name: '',
-    quantity: '',
-    unit: 'g' as FoodUnit,
-  });
+  const newIngredient = (
+    ingredient: { name: string; quantity: string; unit: FoodUnit } = {
+      name: '',
+      quantity: '',
+      unit: 'g',
+    },
+  ) => ({ key: crypto.randomUUID(), ...ingredient });
+
+  const editing = $derived(meal !== null);
 
   let name = $state('');
   let date = $state<DateValue | undefined>(currentDate());
@@ -66,12 +75,22 @@
   });
 
   $effect(() => {
-    if (open) return;
-    name = '';
-    date = currentDate();
-    ingredients = [newIngredient()];
-    submitted = false;
-    formError = null;
+    if (!open) return;
+    untrack(() => {
+      name = meal?.name ?? '';
+      date = meal ? parseDate(meal.date) : currentDate();
+      ingredients = meal
+        ? meal.ingredients.map((ingredient) =>
+            newIngredient({
+              name: ingredient.name,
+              quantity: String(ingredient.quantity).replace('.', ','),
+              unit: ingredient.unit,
+            }),
+          )
+        : [newIngredient()];
+      submitted = false;
+      formError = null;
+    });
   });
 
   async function onsubmit(event: SubmitEvent) {
@@ -82,12 +101,14 @@
 
     isSubmitting = true;
     try {
-      const meal = await plannedMealApi.create(householdId, result.data);
+      const saved = meal
+        ? await plannedMealApi.update(householdId, meal.id, result.data)
+        : await plannedMealApi.create(householdId, result.data);
       await invalidate(PLANNED_MEALS_DEPENDENCY);
-      toast.success(`${meal.name} je v načrtu.`);
+      toast.success(meal ? `${saved.name} je posodobljeno.` : `${saved.name} je v načrtu.`);
       open = false;
     } catch (error) {
-      formError = mapCreatePlannedMealError(error);
+      formError = mapSavePlannedMealError(error, editing);
     } finally {
       isSubmitting = false;
     }
@@ -97,9 +118,11 @@
 <Dialog.Root bind:open>
   <Dialog.Content class="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
     <Dialog.Header>
-      <Dialog.Title>Nov obrok</Dialog.Title>
+      <Dialog.Title>{editing ? 'Uredi obrok' : 'Nov obrok'}</Dialog.Title>
       <Dialog.Description>
-        Ob vsaki sestavini boš videl, ali jo imaš doma in koliko je manjka.
+        {editing
+          ? 'Spremembe sestavin se takoj upoštevajo na nakupovalnem seznamu.'
+          : 'Ob vsaki sestavini boš videl, ali jo imaš doma in koliko je manjka.'}
       </Dialog.Description>
     </Dialog.Header>
 
@@ -230,7 +253,7 @@
             <Spinner data-icon="inline-start" />
             Shranjujem ...
           {:else}
-            Shrani obrok
+            {editing ? 'Shrani spremembe' : 'Shrani obrok'}
           {/if}
         </Button>
       </Dialog.Footer>

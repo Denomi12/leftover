@@ -14,6 +14,7 @@ export interface PendingShoppingItem extends StockAmount {
 export interface ShoppingListChanges {
   updates: { id: string; quantity: string }[];
   additions: StockAmount[];
+  deletions: string[];
 }
 
 export function planMissingIngredients(
@@ -34,35 +35,63 @@ export function planMissingIngredients(
   }
 
   const stock = buildStock(stockItems);
-  const pending = buildStock(pendingItems);
-  const pendingByKey = new Map<string, PendingShoppingItem>();
+  const pendingByKey = new Map<string, PendingShoppingItem[]>();
   for (const item of pendingItems) {
     const key = stockKey(item.name, item.unit);
-    if (!pendingByKey.has(key)) {
-      pendingByKey.set(key, item);
-    }
+    pendingByKey.set(key, [...(pendingByKey.get(key) ?? []), item]);
   }
 
-  const changes: ShoppingListChanges = { updates: [], additions: [] };
-  for (const [key, { base, ingredient }] of required) {
-    const missing = base - (stock.get(key) ?? 0) - (pending.get(key) ?? 0);
-    if (missing <= 0) {
-      continue;
-    }
+  const changes: ShoppingListChanges = { updates: [], additions: [], deletions: [] };
+  for (const key of new Set([...required.keys(), ...pendingByKey.keys()])) {
+    const entry = required.get(key);
+    const shortfall = Math.max(0, (entry?.base ?? 0) - (stock.get(key) ?? 0));
+    const pending = pendingByKey.get(key) ?? [];
+    const pendingBase = pending.reduce(
+      (sum, item) => sum + toBaseThousandths(item.quantity, item.unit),
+      0,
+    );
 
-    const existing = pendingByKey.get(key);
-    if (existing) {
-      const quantity = Number(existing.quantity) + fromBaseThousandths(missing, existing.unit);
-      changes.updates.push({ id: existing.id, quantity: toQuantity(quantity) });
-    } else {
-      changes.additions.push({
-        name: ingredient.name,
-        unit: ingredient.unit,
-        quantity: toQuantity(fromBaseThousandths(missing, ingredient.unit)),
-      });
+    if (shortfall > pendingBase) {
+      const missing = shortfall - pendingBase;
+      const [existing] = pending;
+      if (existing) {
+        const quantity = Number(existing.quantity) + fromBaseThousandths(missing, existing.unit);
+        changes.updates.push({ id: existing.id, quantity: toQuantity(quantity) });
+      } else if (entry) {
+        changes.additions.push({
+          name: entry.ingredient.name,
+          unit: entry.ingredient.unit,
+          quantity: toQuantity(fromBaseThousandths(missing, entry.ingredient.unit)),
+        });
+      }
+    } else if (shortfall < pendingBase) {
+      reduceExcess(pending, pendingBase - shortfall, changes);
     }
   }
   return changes;
+}
+
+function reduceExcess(
+  pending: PendingShoppingItem[],
+  excess: number,
+  changes: ShoppingListChanges,
+): void {
+  for (const item of [...pending].reverse()) {
+    if (excess <= 0) {
+      return;
+    }
+    const base = toBaseThousandths(item.quantity, item.unit);
+    if (base <= excess) {
+      changes.deletions.push(item.id);
+      excess -= base;
+    } else {
+      changes.updates.push({
+        id: item.id,
+        quantity: toQuantity(fromBaseThousandths(base - excess, item.unit)),
+      });
+      excess = 0;
+    }
+  }
 }
 
 function toQuantity(quantity: number): string {

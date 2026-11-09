@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import {
   FoodItemEntity,
   HouseholdEntity,
@@ -51,7 +51,7 @@ export class ShoppingItemRepository {
     await this.shoppingItemRepository.delete({ id: shoppingItemId });
   }
 
-  addMissingIngredients(householdId: string): Promise<void> {
+  syncMissingIngredients(householdId: string): Promise<void> {
     return this.shoppingItemRepository.manager.transaction(async (manager) => {
       await manager.findOne(HouseholdEntity, {
         where: { id: householdId },
@@ -77,10 +77,13 @@ export class ShoppingItemRepository {
         }),
       ]);
 
-      const { updates, additions } = planMissingIngredients(ingredients, stock, pending);
+      const { updates, additions, deletions } = planMissingIngredients(ingredients, stock, pending);
 
       for (const { id, quantity } of updates) {
         await manager.update(ShoppingItemEntity, { id }, { quantity });
+      }
+      if (deletions.length) {
+        await manager.delete(ShoppingItemEntity, { id: In(deletions) });
       }
       if (additions.length) {
         await manager.insert(

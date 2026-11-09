@@ -1,4 +1,4 @@
-import type { FoodCategory, FoodItem, FoodUnit } from '../types/food-item.js';
+import type { ExpirationStatus, FoodCategory, FoodItem, FoodUnit } from '../types/food-item.js';
 import { formatQuantity } from './food-units.js';
 
 export interface FoodGroup {
@@ -29,3 +29,6 @@ export function formatGroupQuantity(items: FoodItem[]): string {
   }
   return [...totals].map(([unit, quantity]) => formatQuantity(quantity, unit)).join(' + ');
 }
+
+export const groupExpirationStatus = (group: FoodGroup): ExpirationStatus | null =>
+  group.items[0].expirationStatus;

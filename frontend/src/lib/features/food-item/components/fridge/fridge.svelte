@@ -1,9 +1,14 @@
 <script lang="ts">
   import { cn } from '#lib/shared/utils.js';
+  import { EXPIRATION_LABELS } from '../../lib/expiration.js';
   import { FRIDGE_DOOR, FRIDGE_DRAWER, FRIDGE_SHELVES } from '../../lib/food-categories.js';
   import type { FoodGroup } from '../../lib/food-groups.js';
   import type { FoodCategory } from '../../types/food-item.js';
+  import type { ExpirationWarning } from '../../types/food-item.js';
+  import ExpirationBadge from '../expiration-badge/expiration-badge.svelte';
   import FridgeZone from '../fridge-zone/fridge-zone.svelte';
+
+  const LEGEND: ExpirationWarning[] = ['EXPIRING_SOON', 'EXPIRED'];
 
   let {
     groupsByCategory,
@@ -87,4 +92,13 @@
       </div>
     </div>
   </div>
+
+  <ul class="mt-3 flex flex-wrap gap-x-6 gap-y-2 px-2 text-xs text-muted-foreground">
+    {#each LEGEND as status (status)}
+      <li class="flex items-center gap-2">
+        <ExpirationBadge {status} marker />
+        {EXPIRATION_LABELS[status]}
+      </li>
+    {/each}
+  </ul>
 </section>

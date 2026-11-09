@@ -11,6 +11,10 @@ export type FoodCategory =
   | 'SAUCES'
   | 'DRINKS';
 
+export type ExpirationStatus = 'EXPIRED' | 'EXPIRING_SOON' | 'FRESH';
+
+export type ExpirationWarning = Exclude<ExpirationStatus, 'FRESH'>;
+
 export interface FoodItem {
   id: string;
   name: string;
@@ -18,6 +22,7 @@ export interface FoodItem {
   unit: FoodUnit;
   category: FoodCategory;
   expirationDate: string | null;
+  expirationStatus: ExpirationStatus | null;
 }
 
 export interface CreateFoodItemPayload {

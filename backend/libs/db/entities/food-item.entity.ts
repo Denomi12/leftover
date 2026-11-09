@@ -7,6 +7,8 @@ import {
   PrimaryGeneratedColumn,
   type Relation,
 } from 'typeorm';
+import { FoodCategory } from '../../../src/utils/types/food-category.type.js';
+import { FoodUnit } from '../../../src/utils/types/food-unit.type.js';
 import { HouseholdEntity } from './household.entity.js';
 
 @Entity('food_items')
@@ -33,7 +35,10 @@ export class FoodItemEntity {
   quantity!: string;
 
   @Column({ type: 'varchar' })
-  unit!: string;
+  unit!: FoodUnit;
+
+  @Column({ type: 'varchar' })
+  category!: FoodCategory;
 
   @Column({
     name: 'expiration_date',

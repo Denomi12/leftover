@@ -1,7 +1,18 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
@@ -14,6 +25,7 @@ import { CurrentHouseholdMember, HouseholdRoles } from '../../../utils/decorator
 import { HouseholdGuard, JwtAuthGuard } from '../../../utils/guards/index.js';
 import { HOUSEHOLD_ID_PARAM } from '../../../utils/constants/index.js';
 import { HouseholdRole } from '../../../utils/types/household-role.type.js';
+import { PLANNED_MEAL_ID_PARAM } from '../constants/planned-meal.constants.js';
 import { CreatePlannedMealRequest, PlannedMealResponse } from '../dtos/index.js';
 import { PlannedMealService } from '../services/planned-meal.service.js';
 
@@ -44,5 +56,20 @@ export class PlannedMealController {
     @Body() body: CreatePlannedMealRequest,
   ): Promise<PlannedMealResponse> {
     return this.plannedMealService.createPlannedMeal(membership.householdId, body);
+  }
+
+  @Post(`:${PLANNED_MEAL_ID_PARAM}/complete`)
+  @HttpCode(HttpStatus.OK)
+  @HouseholdRoles(HouseholdRole.Owner, HouseholdRole.Member)
+  @ApiParam({ name: PLANNED_MEAL_ID_PARAM, format: 'uuid' })
+  @ApiOkResponse({ type: PlannedMealResponse })
+  @ApiForbiddenResponse({ description: 'Guests cannot mark meals as prepared' })
+  @ApiNotFoundResponse({ description: 'Planned meal does not exist in this household' })
+  @ApiConflictResponse({ description: 'Planned meal is already completed' })
+  completePlannedMeal(
+    @CurrentHouseholdMember() membership: HouseholdMemberEntity,
+    @Param(PLANNED_MEAL_ID_PARAM, ParseUUIDPipe) plannedMealId: string,
+  ): Promise<PlannedMealResponse> {
+    return this.plannedMealService.completePlannedMeal(membership.householdId, plannedMealId);
   }
 }

@@ -2,3 +2,4 @@ export const PLANNED_MEAL_NAME_MIN_LENGTH = 1;
 export const PLANNED_MEAL_NAME_MAX_LENGTH = 100;
 export const PLANNED_MEAL_INGREDIENTS_MIN = 1;
 export const PLANNED_MEAL_INGREDIENTS_MAX = 50;
+export const PLANNED_MEAL_ID_PARAM = 'plannedMealId';

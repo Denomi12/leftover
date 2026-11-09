@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePlannedMealRequest, PlannedMealResponse } from '../dtos/index.js';
 import { toPlannedMealResponse } from '../mappers/planned-meal.mapper.js';
 import { PlannedMealRepository } from '../repository/planned-meal.repository.js';
@@ -34,6 +34,21 @@ export class PlannedMealService {
     );
     await this.shoppingItemService.addMissingIngredients(householdId);
     return toPlannedMealResponse(meal, await this.getStock(householdId));
+  }
+
+  async completePlannedMeal(
+    householdId: string,
+    plannedMealId: string,
+  ): Promise<PlannedMealResponse> {
+    const result = await this.plannedMealRepository.complete(householdId, plannedMealId);
+    if (result.status === 'not-found') {
+      throw new NotFoundException('Planned meal not found');
+    }
+    if (result.status === 'already-completed') {
+      throw new ConflictException('Planned meal is already completed');
+    }
+    await this.shoppingItemService.addMissingIngredients(householdId);
+    return toPlannedMealResponse(result.meal, await this.getStock(householdId));
   }
 
   private async getStock(householdId: string): Promise<Stock> {

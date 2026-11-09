@@ -1,9 +1,17 @@
 <script lang="ts">
-  import { tick } from 'svelte';
+  import { goto } from '$app/navigation';
+  import { navigating, page } from '$app/state';
+  import { onDestroy, tick, untrack } from 'svelte';
   import { expiringFoodItems } from '../../lib/expiration.js';
   import { foodGroupKey, groupFoodItems, type FoodGroup } from '../../lib/food-groups.js';
+  import { FOOD_ITEM_SEARCH_DEBOUNCE_MS, foodItemUrl } from '../../lib/food-item-query.js';
   import { scrollWithin } from '../../lib/scroll-within.js';
-  import type { FoodCategory, FoodItem } from '../../types/food-item.js';
+  import type {
+    FoodCategory,
+    FoodItem,
+    FoodItemQuery,
+    FoodItemSort,
+  } from '../../types/food-item.js';
   import ExpiringFoodCard from '../expiring-food-card/expiring-food-card.svelte';
   import DeleteFoodItemDialog from '../delete-food-item-dialog/delete-food-item-dialog.svelte';
   import FoodItemDialog from '../food-item-dialog/food-item-dialog.svelte';
@@ -13,12 +21,16 @@
   let {
     householdId,
     items,
+    listedItems,
+    query,
     canEdit,
     selectedKey = $bindable<string | null>(null),
     onadd,
   }: {
     householdId: string;
     items: FoodItem[];
+    listedItems: FoodItem[];
+    query: FoodItemQuery;
     canEdit: boolean;
     selectedKey?: string | null;
     onadd: (category: FoodCategory | null) => void;
@@ -28,7 +40,48 @@
   let deleteOpen = $state(false);
   let activeItem = $state<FoodItem | null>(null);
 
+  let search = $state(untrack(() => query.search));
+  let sort = $state(untrack(() => query.sort));
+  let sentSearch = untrack(() => query.search);
+  let searchTimer: ReturnType<typeof setTimeout> | undefined;
+
   const groups = $derived(groupFoodItems(items));
+  const listedGroups = $derived(groupFoodItems(listedItems));
+  const loading = $derived(navigating.to?.url.pathname === page.url.pathname);
+
+  $effect(() => {
+    const next = query.search;
+    if (next !== sentSearch) {
+      sentSearch = next;
+      search = next;
+    }
+  });
+
+  $effect(() => {
+    sort = query.sort;
+  });
+
+  onDestroy(() => clearTimeout(searchTimer));
+
+  function applyQuery(next: FoodItemQuery) {
+    clearTimeout(searchTimer);
+    sentSearch = next.search;
+    goto(foodItemUrl(page.url, next), { replace: true, reset: false });
+  }
+
+  function changeSearch(value: string) {
+    search = value;
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(
+      () => applyQuery({ search: value, sort }),
+      FOOD_ITEM_SEARCH_DEBOUNCE_MS,
+    );
+  }
+
+  function changeSort(next: FoodItemSort) {
+    sort = next;
+    applyQuery({ search, sort: next });
+  }
   const expiring = $derived(expiringFoodItems(items));
 
   const groupsByCategory = $derived.by(() => {
@@ -91,7 +144,13 @@
 
   <div class="flex min-w-0 flex-col gap-6 xl:sticky xl:top-6">
     <FoodItemList
-      {groups}
+      groups={listedGroups}
+      totalCount={groups.length}
+      {search}
+      {sort}
+      {loading}
+      onsearch={changeSearch}
+      onsort={changeSort}
       {selectedKey}
       {canEdit}
       onselect={(group) => select(group, 'list')}

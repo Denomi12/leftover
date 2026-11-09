@@ -49,6 +49,8 @@
 <FoodStock
   householdId={data.household.id}
   items={data.foodItems}
+  listedItems={data.listedFoodItems}
+  query={data.foodQuery}
   {canEdit}
   bind:selectedKey
   onadd={openAdd}

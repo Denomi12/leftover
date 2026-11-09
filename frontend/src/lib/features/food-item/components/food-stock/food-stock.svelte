@@ -1,5 +1,6 @@
 <script lang="ts">
   import { tick } from 'svelte';
+  import { groupFoodItems, type FoodGroup } from '../../lib/food-groups.js';
   import { scrollWithin } from '../../lib/scroll-within.js';
   import type { FoodCategory, FoodItem } from '../../types/food-item.js';
   import FoodItemList from '../food-item-list/food-item-list.svelte';
@@ -8,35 +9,42 @@
   let {
     items,
     canEdit,
-    selectedId = $bindable<string | null>(null),
+    selectedKey = $bindable<string | null>(null),
     onadd,
   }: {
     items: FoodItem[];
     canEdit: boolean;
-    selectedId?: string | null;
+    selectedKey?: string | null;
     onadd: (category: FoodCategory | null) => void;
   } = $props();
 
-  const itemsByCategory = $derived.by(() => {
-    const groups = new Map<FoodCategory, FoodItem[]>();
-    for (const item of items) {
-      const group = groups.get(item.category);
-      if (group) group.push(item);
-      else groups.set(item.category, [item]);
+  const groups = $derived(groupFoodItems(items));
+
+  const groupsByCategory = $derived.by(() => {
+    const byCategory = new Map<FoodCategory, FoodGroup[]>();
+    for (const group of groups) {
+      const list = byCategory.get(group.category);
+      if (list) list.push(group);
+      else byCategory.set(group.category, [group]);
     }
-    return groups;
+    return byCategory;
   });
 
-  async function select(item: FoodItem, source: 'fridge' | 'list') {
-    selectedId = selectedId === item.id ? null : item.id;
-    if (!selectedId) return;
+  async function select(group: FoodGroup, source: 'fridge' | 'list') {
+    selectedKey = selectedKey === group.key ? null : group.key;
+    if (!selectedKey) return;
 
     await tick();
+    const selector = CSS.escape(group.key);
     if (source === 'fridge') {
-      scrollWithin(document.querySelector(`[data-food-row="${item.id}"]`), '[data-food-list]', 'y');
+      scrollWithin(
+        document.querySelector(`[data-food-row="${selector}"]`),
+        '[data-food-list]',
+        'y',
+      );
     } else {
       scrollWithin(
-        document.querySelector(`[data-food-item="${item.id}"]`),
+        document.querySelector(`[data-food-item="${selector}"]`),
         '[data-fridge-row]',
         'x',
       );
@@ -48,14 +56,14 @@
   class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] 2xl:grid-cols-[minmax(0,1fr)_24rem]"
 >
   <Fridge
-    {itemsByCategory}
-    {selectedId}
+    {groupsByCategory}
+    {selectedKey}
     {canEdit}
-    onselectitem={(item) => select(item, 'fridge')}
+    onselect={(group) => select(group, 'fridge')}
     onadd={(category) => onadd(category)}
   />
 
   <div class="min-w-0 xl:sticky xl:top-6">
-    <FoodItemList {items} {selectedId} onselect={(item) => select(item, 'list')} />
+    <FoodItemList {groups} {selectedKey} onselect={(group) => select(group, 'list')} />
   </div>
 </div>

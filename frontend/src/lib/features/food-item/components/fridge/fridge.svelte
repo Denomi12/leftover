@@ -1,20 +1,21 @@
 <script lang="ts">
   import { cn } from '#lib/shared/utils.js';
   import { FRIDGE_DOOR, FRIDGE_DRAWER, FRIDGE_SHELVES } from '../../lib/food-categories.js';
-  import type { FoodCategory, FoodItem } from '../../types/food-item.js';
+  import type { FoodGroup } from '../../lib/food-groups.js';
+  import type { FoodCategory } from '../../types/food-item.js';
   import FridgeZone from '../fridge-zone/fridge-zone.svelte';
 
   let {
-    itemsByCategory,
-    selectedId,
+    groupsByCategory,
+    selectedKey,
     canEdit,
-    onselectitem,
+    onselect,
     onadd,
   }: {
-    itemsByCategory: Map<FoodCategory, FoodItem[]>;
-    selectedId: string | null;
+    groupsByCategory: Map<FoodCategory, FoodGroup[]>;
+    selectedKey: string | null;
     canEdit: boolean;
-    onselectitem: (item: FoodItem) => void;
+    onselect: (group: FoodGroup) => void;
     onadd: (category: FoodCategory) => void;
   } = $props();
 </script>
@@ -36,10 +37,10 @@
                 <FridgeZone
                   {category}
                   variant="shelf"
-                  items={itemsByCategory.get(category) ?? []}
-                  {selectedId}
+                  groups={groupsByCategory.get(category) ?? []}
+                  {selectedKey}
                   {canEdit}
-                  {onselectitem}
+                  {onselect}
                   {onadd}
                 />
               {/each}
@@ -56,10 +57,10 @@
           <FridgeZone
             category={FRIDGE_DRAWER}
             variant="drawer"
-            items={itemsByCategory.get(FRIDGE_DRAWER) ?? []}
-            {selectedId}
+            groups={groupsByCategory.get(FRIDGE_DRAWER) ?? []}
+            {selectedKey}
             {canEdit}
-            {onselectitem}
+            {onselect}
             {onadd}
           />
           <div
@@ -76,10 +77,10 @@
           <FridgeZone
             {category}
             variant="door"
-            items={itemsByCategory.get(category) ?? []}
-            {selectedId}
+            groups={groupsByCategory.get(category) ?? []}
+            {selectedKey}
             {canEdit}
-            {onselectitem}
+            {onselect}
             {onadd}
           />
         {/each}

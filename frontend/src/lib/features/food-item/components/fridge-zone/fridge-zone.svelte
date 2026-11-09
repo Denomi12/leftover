@@ -2,25 +2,26 @@
   import PlusIcon from '@lucide/svelte/icons/plus';
   import { cn } from '#lib/shared/utils.js';
   import { FOOD_CATEGORIES } from '../../lib/food-categories.js';
-  import type { FoodCategory, FoodItem } from '../../types/food-item.js';
+  import type { FoodGroup } from '../../lib/food-groups.js';
+  import type { FoodCategory } from '../../types/food-item.js';
   import FridgeItem from '../fridge-item/fridge-item.svelte';
 
   let {
     category,
-    items,
+    groups,
     variant = 'shelf',
-    selectedId,
+    selectedKey,
     canEdit,
-    onselectitem,
+    onselect,
     onadd,
     class: className,
   }: {
     category: FoodCategory;
-    items: FoodItem[];
+    groups: FoodGroup[];
     variant?: 'shelf' | 'drawer' | 'door';
-    selectedId: string | null;
+    selectedKey: string | null;
     canEdit: boolean;
-    onselectitem: (item: FoodItem) => void;
+    onselect: (group: FoodGroup) => void;
     onadd: (category: FoodCategory) => void;
     class?: string;
   } = $props();
@@ -42,8 +43,8 @@
   >
     <meta.icon />
     <span class="truncate">{meta.label}</span>
-    {#if items.length > 0}
-      <span class="text-muted-foreground/70 tabular-nums">· {items.length}</span>
+    {#if groups.length > 0}
+      <span class="text-muted-foreground/70 tabular-nums">· {groups.length}</span>
     {/if}
   </span>
 
@@ -54,8 +55,8 @@
       variant === 'door' && 'flex-wrap justify-center overflow-x-visible',
     )}
   >
-    {#each items as item (item.id)}
-      <FridgeItem {item} selected={item.id === selectedId} onselect={onselectitem} />
+    {#each groups as group (group.key)}
+      <FridgeItem {group} selected={group.key === selectedKey} {onselect} />
     {:else}
       {#if canEdit}
         <button

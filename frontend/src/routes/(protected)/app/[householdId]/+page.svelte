@@ -4,6 +4,8 @@
   import {
     AddFoodItemDialog,
     type FoodCategory,
+    foodGroupKey,
+    groupFoodItems,
     FoodStock,
     formatFoodCount,
   } from '#lib/features/food-item/index.js';
@@ -14,12 +16,12 @@
 
   let addOpen = $state(false);
   let addCategory = $state<FoodCategory | null>(null);
-  let selectedId = $state<string | null>(null);
+  let selectedKey = $state<string | null>(null);
 
   const canEdit = $derived(data.household.role !== 'GUEST');
   const description = $derived(
     canEdit
-      ? `${data.household.name} · ${formatFoodCount(data.foodItems.length)}`
+      ? `${data.household.name} · ${formatFoodCount(groupFoodItems(data.foodItems).length)}`
       : `${data.household.name} · kot gost zalogo lahko samo pregleduješ`,
   );
 
@@ -44,13 +46,13 @@
   {/snippet}
 </AppHeader>
 
-<FoodStock items={data.foodItems} {canEdit} bind:selectedId onadd={openAdd} />
+<FoodStock items={data.foodItems} {canEdit} bind:selectedKey onadd={openAdd} />
 
 {#if canEdit}
   <AddFoodItemDialog
     bind:open={addOpen}
     householdId={data.household.id}
     initialCategory={addCategory}
-    oncreated={(item) => (selectedId = item.id)}
+    oncreated={(item) => (selectedKey = foodGroupKey(item))}
   />
 {/if}

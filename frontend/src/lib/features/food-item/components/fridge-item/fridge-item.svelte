@@ -1,32 +1,34 @@
 <script lang="ts">
   import { cn } from '#lib/shared/utils.js';
-  import { formatExpiration } from '../../lib/expiration.js';
-  import { formatQuantity } from '../../lib/food-units.js';
-  import type { FoodItem } from '../../types/food-item.js';
+  import { formatGroupQuantity, type FoodGroup } from '../../lib/food-groups.js';
+  import { formatBatchCount } from '../../lib/food-units.js';
 
   let {
-    item,
+    group,
     selected = false,
     onselect,
   }: {
-    item: FoodItem;
+    group: FoodGroup;
     selected?: boolean;
-    onselect: (item: FoodItem) => void;
+    onselect: (group: FoodGroup) => void;
   } = $props();
 
-  const quantity = $derived(formatQuantity(item.quantity, item.unit));
+  const quantity = $derived(formatGroupQuantity(group.items));
+  const batches = $derived(group.items.length);
   const label = $derived(
-    `${item.name}, ${quantity}, ${item.expirationDate ? `rok ${formatExpiration(item.expirationDate)}` : 'brez roka'}`,
+    batches > 1
+      ? `${group.name}, ${quantity}, ${formatBatchCount(batches)}`
+      : `${group.name}, ${quantity}`,
   );
 </script>
 
 <button
   type="button"
-  data-food-item={item.id}
+  data-food-item={group.key}
   aria-label={label}
   aria-pressed={selected}
   title={label}
-  onclick={() => onselect(item)}
+  onclick={() => onselect(group)}
   class="group/item flex w-[4.75rem] shrink-0 flex-col items-center gap-2 rounded-xl pt-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
 >
   <span
@@ -39,8 +41,15 @@
       lang="sl"
       class="line-clamp-2 w-full overflow-hidden text-center text-[10px] leading-tight font-medium break-words hyphens-auto text-muted-foreground"
     >
-      {item.name}
+      {group.name}
     </span>
+    {#if batches > 1}
+      <span
+        class="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-none font-semibold text-primary-foreground tabular-nums"
+      >
+        {batches}
+      </span>
+    {/if}
   </span>
   <span
     class={cn(

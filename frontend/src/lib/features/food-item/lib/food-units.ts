@@ -27,6 +27,13 @@ export function formatQuantity(quantity: number, unit: FoodUnit): string {
   return `${quantityFormat.format(quantity)} ${label}`;
 }
 
+export function formatBatchCount(count: number): string {
+  const lastTwo = count % 100;
+  if (lastTwo === 2) return `${count} različna roka`;
+  if (lastTwo === 3 || lastTwo === 4) return `${count} različni roki`;
+  return `${count} različnih rokov`;
+}
+
 export function formatFoodCount(count: number): string {
   const lastTwo = count % 100;
   if (lastTwo === 1) return `${count} živilo`;

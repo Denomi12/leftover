@@ -15,6 +15,13 @@ export type ExpirationStatus = 'EXPIRED' | 'EXPIRING_SOON' | 'FRESH';
 
 export type ExpirationWarning = Exclude<ExpirationStatus, 'FRESH'>;
 
+export type FoodItemSort = 'EXPIRATION_DATE' | 'NAME';
+
+export interface FoodItemQuery {
+  search: string;
+  sort: FoodItemSort;
+}
+
 export interface FoodItem {
   id: string;
   name: string;

@@ -1,11 +1,18 @@
 <script lang="ts">
   import ArchiveIcon from '@lucide/svelte/icons/archive';
+  import ArrowDownAZIcon from '@lucide/svelte/icons/arrow-down-a-z';
+  import CalendarArrowUpIcon from '@lucide/svelte/icons/calendar-arrow-up';
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
   import PencilIcon from '@lucide/svelte/icons/pencil';
+  import SearchIcon from '@lucide/svelte/icons/search';
+  import SearchXIcon from '@lucide/svelte/icons/search-x';
   import Trash2Icon from '@lucide/svelte/icons/trash-2';
   import { Button } from '#lib/shared/ui/button/index.js';
   import * as Card from '#lib/shared/ui/card/index.js';
   import * as Empty from '#lib/shared/ui/empty/index.js';
+  import * as InputGroup from '#lib/shared/ui/input-group/index.js';
+  import { Spinner } from '#lib/shared/ui/spinner/index.js';
+  import * as ToggleGroup from '#lib/shared/ui/toggle-group/index.js';
   import { cn } from '#lib/shared/utils.js';
   import { formatExpiration } from '../../lib/expiration.js';
   import { FOOD_CATEGORIES } from '../../lib/food-categories.js';
@@ -15,11 +22,17 @@
     type FoodGroup,
   } from '../../lib/food-groups.js';
   import { formatBatchCount, formatQuantity } from '../../lib/food-units.js';
-  import type { FoodItem } from '../../types/food-item.js';
+  import type { FoodItem, FoodItemSort } from '../../types/food-item.js';
   import ExpirationBadge from '../expiration-badge/expiration-badge.svelte';
 
   let {
     groups,
+    totalCount,
+    search,
+    sort,
+    loading,
+    onsearch,
+    onsort,
     selectedKey,
     canEdit,
     onselect,
@@ -27,23 +40,88 @@
     ondelete,
   }: {
     groups: FoodGroup[];
+    totalCount: number;
+    search: string;
+    sort: FoodItemSort;
+    loading: boolean;
+    onsearch: (value: string) => void;
+    onsort: (value: FoodItemSort) => void;
     selectedKey: string | null;
     canEdit: boolean;
     onselect: (group: FoodGroup) => void;
     onedit: (item: FoodItem) => void;
     ondelete: (item: FoodItem) => void;
   } = $props();
+
+  const SORT_ITEM_CLASS =
+    'px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground';
+
+  function changeSort(value: string) {
+    if (value) onsort(value as FoodItemSort);
+  }
 </script>
 
 <Card.Root class="gap-4">
-  <Card.Header>
+  <Card.Header class="gap-3">
     <Card.Title class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-      Vsa živila · {groups.length}
+      Vsa živila · {totalCount}
     </Card.Title>
+
+    {#if totalCount > 0}
+      <InputGroup.Root>
+        <InputGroup.Addon>
+          <SearchIcon />
+        </InputGroup.Addon>
+        <InputGroup.Input
+          type="search"
+          value={search}
+          oninput={(event) => onsearch(event.currentTarget.value)}
+          placeholder="Išči živilo ..."
+          aria-label="Išči živilo"
+          autocomplete="off"
+        />
+        {#if loading}
+          <InputGroup.Addon align="inline-end">
+            <Spinner aria-label="Iskanje" />
+          </InputGroup.Addon>
+        {/if}
+      </InputGroup.Root>
+
+      <ToggleGroup.Root
+        type="single"
+        variant="outline"
+        size="sm"
+        bind:value={() => sort, changeSort}
+        aria-label="Razvrsti živila"
+        class="self-start"
+      >
+        <ToggleGroup.Item value="EXPIRATION_DATE" class={SORT_ITEM_CLASS}>
+          <CalendarArrowUpIcon />
+          Rok uporabe
+        </ToggleGroup.Item>
+        <ToggleGroup.Item value="NAME" class={SORT_ITEM_CLASS}>
+          <ArrowDownAZIcon />
+          Ime A–Ž
+        </ToggleGroup.Item>
+      </ToggleGroup.Root>
+    {/if}
   </Card.Header>
 
   <Card.Content class="px-0">
-    {#if groups.length === 0}
+    {#if totalCount > 0 && groups.length === 0}
+      <Empty.Root class="mx-(--card-spacing) border border-dashed py-8">
+        <Empty.Header>
+          <Empty.Media variant="icon" class="bg-secondary text-primary">
+            <SearchXIcon />
+          </Empty.Media>
+          <Empty.Title class="text-base">Ni zadetkov</Empty.Title>
+          <Empty.Description>Nobeno živilo ne vsebuje »{search.trim()}«.</Empty.Description>
+        </Empty.Header>
+        <Empty.Content>
+          <Button variant="outline" size="sm" onclick={() => onsearch('')}>Počisti iskanje</Button>
+        </Empty.Content>
+      </Empty.Root>
+    {:else if groups.length === 0}
       <Empty.Root class="mx-(--card-spacing) border border-dashed py-8">
         <Empty.Header>
           <Empty.Media variant="icon" class="bg-secondary text-primary">

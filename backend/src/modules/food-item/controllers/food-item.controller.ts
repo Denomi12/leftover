@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -28,7 +29,12 @@ import { HouseholdGuard, JwtAuthGuard } from '../../../utils/guards/index.js';
 import { HOUSEHOLD_ID_PARAM } from '../../../utils/constants/index.js';
 import { HouseholdRole } from '../../../utils/types/household-role.type.js';
 import { FOOD_ITEM_ID_PARAM } from '../constants/food-item.constants.js';
-import { CreateFoodItemRequest, FoodItemResponse, UpdateFoodItemRequest } from '../dtos/index.js';
+import {
+  CreateFoodItemRequest,
+  FoodItemResponse,
+  GetFoodItemsRequest,
+  UpdateFoodItemRequest,
+} from '../dtos/index.js';
 import { FoodItemService } from '../services/food-item.service.js';
 
 @ApiTags('food items')
@@ -44,8 +50,9 @@ export class FoodItemController {
   @ApiOkResponse({ type: FoodItemResponse, isArray: true })
   getFoodItems(
     @CurrentHouseholdMember() membership: HouseholdMemberEntity,
+    @Query() query: GetFoodItemsRequest,
   ): Promise<FoodItemResponse[]> {
-    return this.foodItemService.getFoodItems(membership.householdId);
+    return this.foodItemService.getFoodItems(membership.householdId, query);
   }
 
   @Post()

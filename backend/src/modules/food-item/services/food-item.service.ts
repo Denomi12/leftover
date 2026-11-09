@@ -1,8 +1,14 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 import { NUMERIC_OUT_OF_RANGE_CODE } from '../constants/food-item.constants.js';
-import { CreateFoodItemRequest, FoodItemResponse, UpdateFoodItemRequest } from '../dtos/index.js';
+import {
+  CreateFoodItemRequest,
+  FoodItemResponse,
+  GetFoodItemsRequest,
+  UpdateFoodItemRequest,
+} from '../dtos/index.js';
 import { toFoodItemResponse } from '../mappers/food-item.mapper.js';
+import { FoodItemSort } from '../../../utils/types/food-item-sort.type.js';
 import { currentIsoDate } from '../utils/expiration.js';
 import { type FoodItemChanges, FoodItemRepository } from '../repository/food-item.repository.js';
 
@@ -10,8 +16,11 @@ import { type FoodItemChanges, FoodItemRepository } from '../repository/food-ite
 export class FoodItemService {
   constructor(private readonly foodItemRepository: FoodItemRepository) {}
 
-  async getFoodItems(householdId: string): Promise<FoodItemResponse[]> {
-    const items = await this.foodItemRepository.findOfHousehold(householdId);
+  async getFoodItems(
+    householdId: string,
+    { search, sort = FoodItemSort.ExpirationDate }: GetFoodItemsRequest,
+  ): Promise<FoodItemResponse[]> {
+    const items = await this.foodItemRepository.findOfHousehold(householdId, search, sort);
     const today = currentIsoDate();
     return items.map((item) => toFoodItemResponse(item, today));
   }

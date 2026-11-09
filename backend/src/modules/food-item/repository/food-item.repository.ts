@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { type EntityManager, Not, Repository } from 'typeorm';
 import { FoodItemEntity } from '../../../../libs/db/entities/index.js';
+import { FoodItemSort } from '../../../utils/types/food-item-sort.type.js';
+
+const LIKE_SPECIAL_CHARACTERS = /[\\%_]/g;
 
 type FoodItemData = Pick<
   FoodItemEntity,
@@ -19,14 +22,31 @@ export class FoodItemRepository {
     private readonly foodItemRepository: Repository<FoodItemEntity>,
   ) {}
 
-  findOfHousehold(householdId: string): Promise<FoodItemEntity[]> {
-    return this.foodItemRepository.find({
-      where: { householdId },
-      order: {
-        expirationDate: { direction: 'ASC', nulls: 'LAST' },
-        name: 'ASC',
-      },
-    });
+  findOfHousehold(
+    householdId: string,
+    search: string | undefined,
+    sort: FoodItemSort,
+  ): Promise<FoodItemEntity[]> {
+    const query = this.foodItemRepository
+      .createQueryBuilder('item')
+      .where('item.householdId = :householdId', { householdId });
+
+    if (search) {
+      const pattern = `%${search.replace(LIKE_SPECIAL_CHARACTERS, '\\$&')}%`;
+      query.andWhere('item.name ILIKE :pattern', { pattern });
+    }
+
+    if (sort === FoodItemSort.Name) {
+      query
+        .orderBy('LOWER(item.name)', 'ASC')
+        .addOrderBy('item.expirationDate', 'ASC', 'NULLS LAST');
+    } else {
+      query
+        .orderBy('item.expirationDate', 'ASC', 'NULLS LAST')
+        .addOrderBy('LOWER(item.name)', 'ASC');
+    }
+
+    return query.addOrderBy('item.id', 'ASC').getMany();
   }
 
   addOrMerge(data: FoodItemData): Promise<FoodItemEntity> {

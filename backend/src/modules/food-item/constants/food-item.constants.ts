@@ -5,3 +5,5 @@ export const FOOD_ITEM_QUANTITY_MAX_DECIMAL_PLACES = 3;
 export const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 export const NUMERIC_OUT_OF_RANGE_CODE = '22003';
 export const FOOD_ITEM_ID_PARAM = 'foodItemId';
+export const EXPIRING_SOON_DAYS = 3;
+export const EXPIRATION_TIME_ZONE = 'Europe/Ljubljana';

@@ -3,6 +3,7 @@ import { QueryFailedError } from 'typeorm';
 import { NUMERIC_OUT_OF_RANGE_CODE } from '../constants/food-item.constants.js';
 import { CreateFoodItemRequest, FoodItemResponse, UpdateFoodItemRequest } from '../dtos/index.js';
 import { toFoodItemResponse } from '../mappers/food-item.mapper.js';
+import { currentIsoDate } from '../utils/expiration.js';
 import { type FoodItemChanges, FoodItemRepository } from '../repository/food-item.repository.js';
 
 @Injectable()
@@ -11,7 +12,8 @@ export class FoodItemService {
 
   async getFoodItems(householdId: string): Promise<FoodItemResponse[]> {
     const items = await this.foodItemRepository.findOfHousehold(householdId);
-    return items.map(toFoodItemResponse);
+    const today = currentIsoDate();
+    return items.map((item) => toFoodItemResponse(item, today));
   }
 
   async createFoodItem(

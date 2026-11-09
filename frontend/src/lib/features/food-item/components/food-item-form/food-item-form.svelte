@@ -1,6 +1,6 @@
 <script lang="ts">
   import { invalidate } from '$app/navigation';
-  import type { DateValue } from '@internationalized/date';
+  import { parseDate, type DateValue } from '@internationalized/date';
   import CalendarIcon from '@lucide/svelte/icons/calendar';
   import XIcon from '@lucide/svelte/icons/x';
   import { untrack } from 'svelte';
@@ -15,7 +15,7 @@
   import { Spinner } from '#lib/shared/ui/spinner/index.js';
   import { cn } from '#lib/shared/utils.js';
   import { foodItemApi } from '../../api/food-item.api.js';
-  import { mapCreateFoodItemError } from '../../api/food-item-errors.js';
+  import { mapSaveFoodItemError } from '../../api/food-item-errors.js';
   import { currentDate, formatExpiration } from '../../lib/expiration.js';
   import { FOOD_CATEGORIES, FOOD_CATEGORY_OPTIONS } from '../../lib/food-categories.js';
   import { FOOD_ITEMS_DEPENDENCY } from '../../lib/food-item-routes.js';
@@ -25,21 +25,28 @@
 
   let {
     householdId,
+    item = null,
     initialCategory = null,
-    oncreated,
+    onsaved,
     oncancel,
   }: {
     householdId: string;
+    item?: FoodItem | null;
     initialCategory?: FoodCategory | null;
-    oncreated?: (item: FoodItem) => void;
+    onsaved?: (item: FoodItem) => void;
     oncancel?: () => void;
   } = $props();
 
-  let name = $state('');
-  let quantity = $state('1');
-  let unit = $state<FoodUnit>('kos');
-  let category = $state<string>(untrack(() => initialCategory) ?? '');
-  let expiration = $state<DateValue | undefined>();
+  const initial = untrack(() => item);
+  const editing = initial !== null;
+
+  let name = $state(initial?.name ?? '');
+  let quantity = $state(initial ? String(initial.quantity).replace('.', ',') : '1');
+  let unit = $state<FoodUnit>(initial?.unit ?? 'kos');
+  let category = $state<string>(initial?.category ?? untrack(() => initialCategory) ?? '');
+  let expiration = $state<DateValue | undefined>(
+    initial?.expirationDate ? parseDate(initial.expirationDate) : undefined,
+  );
   let calendarOpen = $state(false);
 
   let submitted = $state(false);
@@ -81,12 +88,14 @@
 
     isSubmitting = true;
     try {
-      const item = await foodItemApi.create(householdId, result.data);
+      const saved = initial
+        ? await foodItemApi.update(householdId, initial.id, result.data)
+        : await foodItemApi.create(householdId, result.data);
       await invalidate(FOOD_ITEMS_DEPENDENCY);
-      toast.success(`${item.name} je v hladilniku.`);
-      oncreated?.(item);
+      toast.success(editing ? `${saved.name} je posodobljeno.` : `${saved.name} je v hladilniku.`);
+      onsaved?.(saved);
     } catch (error) {
-      formError = mapCreateFoodItemError(error);
+      formError = mapSaveFoodItemError(error, editing);
     } finally {
       isSubmitting = false;
     }

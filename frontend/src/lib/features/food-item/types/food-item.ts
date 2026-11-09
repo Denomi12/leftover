@@ -27,3 +27,5 @@ export interface CreateFoodItemPayload {
   category: FoodCategory;
   expirationDate: string | null;
 }
+
+export type UpdateFoodItemPayload = Partial<CreateFoodItemPayload>;

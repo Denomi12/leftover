@@ -1,6 +1,9 @@
 <script lang="ts">
   import ArchiveIcon from '@lucide/svelte/icons/archive';
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
+  import PencilIcon from '@lucide/svelte/icons/pencil';
+  import Trash2Icon from '@lucide/svelte/icons/trash-2';
+  import { Button } from '#lib/shared/ui/button/index.js';
   import * as Card from '#lib/shared/ui/card/index.js';
   import * as Empty from '#lib/shared/ui/empty/index.js';
   import { cn } from '#lib/shared/utils.js';
@@ -8,15 +11,22 @@
   import { FOOD_CATEGORIES } from '../../lib/food-categories.js';
   import { formatGroupQuantity, type FoodGroup } from '../../lib/food-groups.js';
   import { formatBatchCount, formatQuantity } from '../../lib/food-units.js';
+  import type { FoodItem } from '../../types/food-item.js';
 
   let {
     groups,
     selectedKey,
+    canEdit,
     onselect,
+    onedit,
+    ondelete,
   }: {
     groups: FoodGroup[];
     selectedKey: string | null;
+    canEdit: boolean;
     onselect: (group: FoodGroup) => void;
+    onedit: (item: FoodItem) => void;
+    ondelete: (item: FoodItem) => void;
   } = $props();
 </script>
 
@@ -48,6 +58,7 @@
             {@const selected = group.key === selectedKey}
             {@const batches = group.items.length}
             {@const first = group.items[0]}
+            {@const expandable = canEdit || batches > 1}
             <li
               data-food-row={group.key}
               class={cn(
@@ -58,7 +69,7 @@
               <button
                 type="button"
                 aria-pressed={selected}
-                aria-expanded={batches > 1 ? selected : undefined}
+                aria-expanded={expandable ? selected : undefined}
                 onclick={() => onselect(group)}
                 class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
               >
@@ -78,7 +89,7 @@
                     {/if}
                   </span>
                 </span>
-                {#if batches > 1}
+                {#if expandable}
                   <ChevronDownIcon
                     class={cn(
                       'size-4 shrink-0 text-muted-foreground transition-transform duration-200',
@@ -88,18 +99,41 @@
                 {/if}
               </button>
 
-              {#if selected && batches > 1}
-                <ul class="mx-3 mb-2.5 flex flex-col border-t pt-1.5">
+              {#if selected && expandable}
+                <ul class="mx-3 mb-2 flex flex-col border-t pt-1">
                   {#each group.items as item (item.id)}
-                    <li class="flex items-center justify-between gap-3 py-1 pl-12 text-xs">
+                    <li class="flex min-h-9 items-center gap-3 py-0.5 pl-12 text-xs">
                       <span class="font-medium tabular-nums">
                         {formatQuantity(item.quantity, item.unit)}
                       </span>
-                      <span class="text-muted-foreground tabular-nums">
+                      <span class="flex-1 text-muted-foreground tabular-nums">
                         {item.expirationDate
                           ? `rok ${formatExpiration(item.expirationDate)}`
                           : 'brez roka'}
                       </span>
+                      {#if canEdit}
+                        <span class="flex shrink-0 items-center">
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={`Uredi ${item.name}`}
+                            title="Uredi"
+                            onclick={() => onedit(item)}
+                          >
+                            <PencilIcon />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={`Odstrani ${item.name}`}
+                            title="Odstrani"
+                            class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                            onclick={() => ondelete(item)}
+                          >
+                            <Trash2Icon />
+                          </Button>
+                        </span>
+                      {/if}
                     </li>
                   {/each}
                 </ul>

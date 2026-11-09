@@ -2,8 +2,8 @@
   import PlusIcon from '@lucide/svelte/icons/plus';
   import { AppHeader } from '#lib/features/app-shell/index.js';
   import {
-    AddFoodItemDialog,
     type FoodCategory,
+    FoodItemDialog,
     foodGroupKey,
     groupFoodItems,
     FoodStock,
@@ -46,13 +46,19 @@
   {/snippet}
 </AppHeader>
 
-<FoodStock items={data.foodItems} {canEdit} bind:selectedKey onadd={openAdd} />
+<FoodStock
+  householdId={data.household.id}
+  items={data.foodItems}
+  {canEdit}
+  bind:selectedKey
+  onadd={openAdd}
+/>
 
 {#if canEdit}
-  <AddFoodItemDialog
+  <FoodItemDialog
     bind:open={addOpen}
     householdId={data.household.id}
     initialCategory={addCategory}
-    oncreated={(item) => (selectedKey = foodGroupKey(item))}
+    onsaved={(item) => (selectedKey = foodGroupKey(item))}
   />
 {/if}

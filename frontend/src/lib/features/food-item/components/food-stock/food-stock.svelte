@@ -1,22 +1,30 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { groupFoodItems, type FoodGroup } from '../../lib/food-groups.js';
+  import { foodGroupKey, groupFoodItems, type FoodGroup } from '../../lib/food-groups.js';
   import { scrollWithin } from '../../lib/scroll-within.js';
   import type { FoodCategory, FoodItem } from '../../types/food-item.js';
+  import DeleteFoodItemDialog from '../delete-food-item-dialog/delete-food-item-dialog.svelte';
+  import FoodItemDialog from '../food-item-dialog/food-item-dialog.svelte';
   import FoodItemList from '../food-item-list/food-item-list.svelte';
   import Fridge from '../fridge/fridge.svelte';
 
   let {
+    householdId,
     items,
     canEdit,
     selectedKey = $bindable<string | null>(null),
     onadd,
   }: {
+    householdId: string;
     items: FoodItem[];
     canEdit: boolean;
     selectedKey?: string | null;
     onadd: (category: FoodCategory | null) => void;
   } = $props();
+
+  let editOpen = $state(false);
+  let deleteOpen = $state(false);
+  let activeItem = $state<FoodItem | null>(null);
 
   const groups = $derived(groupFoodItems(items));
 
@@ -29,6 +37,16 @@
     }
     return byCategory;
   });
+
+  function openEdit(item: FoodItem) {
+    activeItem = item;
+    editOpen = true;
+  }
+
+  function openDelete(item: FoodItem) {
+    activeItem = item;
+    deleteOpen = true;
+  }
 
   async function select(group: FoodGroup, source: 'fridge' | 'list') {
     selectedKey = selectedKey === group.key ? null : group.key;
@@ -64,6 +82,23 @@
   />
 
   <div class="min-w-0 xl:sticky xl:top-6">
-    <FoodItemList {groups} {selectedKey} onselect={(group) => select(group, 'list')} />
+    <FoodItemList
+      {groups}
+      {selectedKey}
+      {canEdit}
+      onselect={(group) => select(group, 'list')}
+      onedit={openEdit}
+      ondelete={openDelete}
+    />
   </div>
 </div>
+
+{#if canEdit}
+  <FoodItemDialog
+    bind:open={editOpen}
+    {householdId}
+    item={activeItem}
+    onsaved={(saved) => (selectedKey = foodGroupKey(saved))}
+  />
+  <DeleteFoodItemDialog bind:open={deleteOpen} {householdId} item={activeItem} />
+{/if}

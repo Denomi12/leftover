@@ -7,6 +7,7 @@ export function toShoppingItemResponse({
   quantity,
   unit,
   completed,
+  source,
 }: ShoppingItemEntity): ShoppingItemResponse {
-  return { id, name, quantity: Number(quantity), unit, completed };
+  return { id, name, quantity: Number(quantity), unit, completed, source };
 }

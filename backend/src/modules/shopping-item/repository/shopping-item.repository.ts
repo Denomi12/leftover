@@ -7,7 +7,14 @@ import {
   MealIngredientEntity,
   ShoppingItemEntity,
 } from '../../../../libs/db/entities/index.js';
+import { ShoppingItemSource } from '../../../utils/types/shopping-item-source.type.js';
 import { planMissingIngredients } from '../utils/shopping-list.js';
+
+type ShoppingItemData = Pick<ShoppingItemEntity, 'householdId' | 'name' | 'quantity' | 'unit'>;
+
+export type ShoppingItemChanges = Partial<
+  Pick<ShoppingItemEntity, 'name' | 'quantity' | 'unit' | 'completed'>
+>;
 
 @Injectable()
 export class ShoppingItemRepository {
@@ -26,17 +33,22 @@ export class ShoppingItemRepository {
       .getMany();
   }
 
-  async setCompleted(
-    householdId: string,
-    shoppingItemId: string,
-    completed: boolean,
-  ): Promise<ShoppingItemEntity | null> {
-    const item = await this.shoppingItemRepository.findOneBy({ id: shoppingItemId, householdId });
-    if (!item) {
-      return null;
-    }
-    item.completed = completed;
-    return this.shoppingItemRepository.save(item);
+  findOne(householdId: string, shoppingItemId: string): Promise<ShoppingItemEntity | null> {
+    return this.shoppingItemRepository.findOneBy({ id: shoppingItemId, householdId });
+  }
+
+  create(data: ShoppingItemData): Promise<ShoppingItemEntity> {
+    return this.shoppingItemRepository.save(
+      this.shoppingItemRepository.create({ ...data, source: ShoppingItemSource.Manual }),
+    );
+  }
+
+  update(item: ShoppingItemEntity, changes: ShoppingItemChanges): Promise<ShoppingItemEntity> {
+    return this.shoppingItemRepository.save(Object.assign(item, changes));
+  }
+
+  async delete(shoppingItemId: string): Promise<void> {
+    await this.shoppingItemRepository.delete({ id: shoppingItemId });
   }
 
   addMissingIngredients(householdId: string): Promise<void> {
@@ -60,7 +72,7 @@ export class ShoppingItemRepository {
           select: { name: true, quantity: true, unit: true },
         }),
         manager.find(ShoppingItemEntity, {
-          where: { householdId, completed: false },
+          where: { householdId, completed: false, source: ShoppingItemSource.MealPlan },
           order: { id: 'ASC' },
         }),
       ]);
@@ -73,7 +85,11 @@ export class ShoppingItemRepository {
       if (additions.length) {
         await manager.insert(
           ShoppingItemEntity,
-          additions.map((item) => ({ ...item, householdId })),
+          additions.map((item) => ({
+            ...item,
+            householdId,
+            source: ShoppingItemSource.MealPlan,
+          })),
         );
       }
     });

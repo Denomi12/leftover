@@ -1,3 +1,4 @@
+import { householdApi } from '#lib/features/household/index.js';
 import {
   HOUSEHOLD_INVITATIONS_DEPENDENCY,
   type HouseholdInvitation,
@@ -9,8 +10,12 @@ export const load: PageLoad = async ({ parent, fetch, depends }) => {
   depends(HOUSEHOLD_INVITATIONS_DEPENDENCY);
   const { household } = await parent();
 
-  const invitations: HouseholdInvitation[] =
-    household.role === 'OWNER' ? await householdInvitationApi.listPending(household.id, fetch) : [];
+  const [members, invitations] = await Promise.all([
+    householdApi.members(household.id, fetch),
+    household.role === 'OWNER'
+      ? householdInvitationApi.listPending(household.id, fetch)
+      : Promise.resolve<HouseholdInvitation[]>([]),
+  ]);
 
-  return { invitations };
+  return { members, invitations };
 };

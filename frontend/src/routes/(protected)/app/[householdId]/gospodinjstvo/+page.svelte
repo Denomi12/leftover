@@ -1,14 +1,12 @@
 <script lang="ts">
   import UserPlusIcon from '@lucide/svelte/icons/user-plus';
-  import UsersIcon from '@lucide/svelte/icons/users';
   import { AppHeader } from '#lib/features/app-shell/index.js';
-  import { householdSummary } from '#lib/features/household/index.js';
+  import { HouseholdMembersCard, householdSummary } from '#lib/features/household/index.js';
   import {
     InviteMemberForm,
     PendingInvitationsCard,
   } from '#lib/features/household-invitation/index.js';
   import * as Card from '#lib/shared/ui/card/index.js';
-  import * as Empty from '#lib/shared/ui/empty/index.js';
   import type { PageProps } from './$types';
 
   let { data }: PageProps = $props();
@@ -22,11 +20,13 @@
 
 <AppHeader
   title="Gospodinjstvo"
-  description={`${data.household.name} · ${householdSummary(data.household.role, data.household.memberCount)}`}
+  description={`${data.household.name} · ${householdSummary(data.household.role, data.members.length)}`}
 />
 
+<HouseholdMembersCard members={data.members} />
+
 {#if isOwner}
-  <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+  <div class="grid items-start gap-6 xl:grid-cols-2">
     <Card.Root>
       <Card.Header>
         <div class="flex items-start gap-3">
@@ -50,20 +50,6 @@
       </Card.Content>
     </Card.Root>
 
-    <PendingInvitationsCard invitations={data.invitations} />
+    <PendingInvitationsCard householdId={data.household.id} invitations={data.invitations} />
   </div>
-{:else}
-  <Empty.Root class="border bg-card">
-    <Empty.Header>
-      <Empty.Media variant="icon" class="bg-secondary text-primary">
-        <UsersIcon />
-      </Empty.Media>
-      <Empty.Title class="font-display text-xl font-normal tracking-[-0.02em]">
-        Člane vabi lastnik
-      </Empty.Title>
-      <Empty.Description>
-        V gospodinjstvu {data.household.name} lahko nove člane vabi in jim določa vloge samo lastnik.
-      </Empty.Description>
-    </Empty.Header>
-  </Empty.Root>
 {/if}

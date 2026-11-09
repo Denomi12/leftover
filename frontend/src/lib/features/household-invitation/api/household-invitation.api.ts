@@ -19,6 +19,8 @@ export const householdInvitationApi = {
     api<HouseholdInvitation[]>(householdInvitationsPath(householdId), { fetch: fetchFn }),
   create: (householdId: string, body: CreateInvitationPayload) =>
     api<HouseholdInvitation>(householdInvitationsPath(householdId), { method: 'POST', body }),
+  cancel: (householdId: string, invitationId: string) =>
+    api<null>(`${householdInvitationsPath(householdId)}/${invitationId}`, { method: 'DELETE' }),
   listReceived: () => api<ReceivedInvitation[]>('/invitations'),
   accept: (invitationId: string) =>
     api<Household>(`/invitations/${invitationId}/accept`, { method: 'POST' }),

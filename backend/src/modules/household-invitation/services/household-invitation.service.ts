@@ -75,6 +75,13 @@ export class HouseholdInvitationService {
     return invitations.map(toHouseholdInvitationResponse);
   }
 
+  async cancelInvitation(householdId: string, invitationId: string): Promise<void> {
+    const cancelled = await this.invitationRepository.cancel(invitationId, householdId);
+    if (!cancelled) {
+      throw new NotFoundException('Invitation not found');
+    }
+  }
+
   async getPendingInvitationsOfUser(userId: string): Promise<ReceivedInvitationResponse[]> {
     const invitations = await this.invitationRepository.findPendingOfUser(userId);
     return invitations.map(toReceivedInvitationResponse);

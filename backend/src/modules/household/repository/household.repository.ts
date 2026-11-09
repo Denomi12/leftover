@@ -35,6 +35,14 @@ export class HouseholdRepository {
     });
   }
 
+  findMembersOfHousehold(householdId: string): Promise<HouseholdMemberEntity[]> {
+    return this.memberRepository.find({
+      where: { householdId },
+      relations: { user: true },
+      order: { user: { name: 'ASC' } },
+    });
+  }
+
   findById(householdId: string): Promise<HouseholdEntity | null> {
     return this.householdRepository.findOneBy({ id: householdId });
   }

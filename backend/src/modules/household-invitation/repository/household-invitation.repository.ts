@@ -124,4 +124,13 @@ export class HouseholdInvitationRepository {
     );
     return Boolean(result.affected);
   }
+
+  async cancel(invitationId: string, householdId: string): Promise<boolean> {
+    const result = await this.invitationRepository.delete({
+      id: invitationId,
+      householdId,
+      status: HouseholdInvitationStatus.Pending,
+    });
+    return Boolean(result.affected);
+  }
 }

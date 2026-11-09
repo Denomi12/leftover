@@ -1,6 +1,6 @@
-import type { HouseholdEntity } from '../../../../libs/db/entities/index.js';
+import type { HouseholdEntity, HouseholdMemberEntity } from '../../../../libs/db/entities/index.js';
 import type { HouseholdRole } from '../../../utils/types/household-role.type.js';
-import type { HouseholdResponse } from '../dtos/index.js';
+import type { HouseholdMemberResponse, HouseholdResponse } from '../dtos/index.js';
 
 export function toHouseholdResponse(
   household: HouseholdEntity,
@@ -14,4 +14,12 @@ export function toHouseholdResponse(
     memberCount,
     createdAt: household.createdAt,
   };
+}
+
+export function toHouseholdMemberResponse({
+  id,
+  role,
+  user,
+}: HouseholdMemberEntity): HouseholdMemberResponse {
+  return { id, role, user: { id: user.id, name: user.name, email: user.email } };
 }

@@ -33,6 +33,16 @@ export function mapInviteError(error: unknown): InviteErrorResult {
   }
 }
 
+export function mapCancelInvitationError(error: unknown): string {
+  if (error instanceof ApiError && error.status === NETWORK_ERROR_STATUS) {
+    return NETWORK_MESSAGE;
+  }
+  if (error instanceof ApiError && error.status === 404) {
+    return 'Povabilo je že sprejeto, zavrnjeno ali preklicano.';
+  }
+  return 'Povabila ni bilo mogoče preklicati. Poskusi znova.';
+}
+
 export function mapInvitationResponseError(error: unknown): string {
   if (error instanceof ApiError && error.status === NETWORK_ERROR_STATUS) {
     return NETWORK_MESSAGE;

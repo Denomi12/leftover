@@ -18,5 +18,5 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Nakupovalni seznam', icon: ShoppingCartIcon },
   { label: 'Statistika', icon: ChartColumnIcon },
   { label: 'Zgodovina', icon: HistoryIcon },
-  { label: 'Gospodinjstvo', icon: UsersIcon },
+  { label: 'Gospodinjstvo', icon: UsersIcon, path: '/gospodinjstvo' },
 ];

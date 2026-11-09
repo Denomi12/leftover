@@ -1,10 +1,14 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { page } from '$app/state';
   import { AppSidebar } from '#lib/features/app-shell/index.js';
+  import { invitationInbox } from '#lib/features/household-invitation/index.js';
   import * as Sidebar from '#lib/shared/ui/sidebar/index.js';
   import type { LayoutProps } from './$types';
 
   let { data, children }: LayoutProps = $props();
+
+  onMount(() => invitationInbox.start());
 
   const activeHouseholdId = $derived(
     data.households.find(({ id }) => id === page.params.householdId)?.id,

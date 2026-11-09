@@ -1,15 +1,9 @@
 <script lang="ts">
   import { auth } from '#lib/features/auth/index.js';
+  import { getInitials } from '#lib/shared/lib/initials.js';
   import * as Avatar from '#lib/shared/ui/avatar/index.js';
 
-  const initials = $derived(
-    (auth.user?.name ?? '')
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((part) => part.charAt(0).toUpperCase())
-      .join(''),
-  );
+  const initials = $derived(getInitials(auth.user?.name ?? ''));
 </script>
 
 <div class="flex items-center gap-2.5">

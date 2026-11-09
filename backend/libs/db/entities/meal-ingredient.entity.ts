@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   type Relation,
 } from 'typeorm';
+import { FoodUnit } from '../../../src/utils/types/food-unit.type.js';
 import { PlannedMealEntity } from './planned-meal.entity.js';
 
 @Entity('meal_ingredients')
@@ -33,5 +34,5 @@ export class MealIngredientEntity {
   quantity!: string;
 
   @Column({ type: 'varchar' })
-  unit!: string;
+  unit!: FoodUnit;
 }

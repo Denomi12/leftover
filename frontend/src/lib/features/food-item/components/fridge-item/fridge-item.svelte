@@ -1,7 +1,13 @@
 <script lang="ts">
   import { cn } from '#lib/shared/utils.js';
-  import { formatGroupQuantity, type FoodGroup } from '../../lib/food-groups.js';
+  import { EXPIRATION_LABELS, isExpirationWarning } from '../../lib/expiration.js';
+  import {
+    formatGroupQuantity,
+    groupExpirationStatus,
+    type FoodGroup,
+  } from '../../lib/food-groups.js';
   import { formatBatchCount } from '../../lib/food-units.js';
+  import ExpirationBadge from '../expiration-badge/expiration-badge.svelte';
 
   let {
     group,
@@ -15,10 +21,16 @@
 
   const quantity = $derived(formatGroupQuantity(group.items));
   const batches = $derived(group.items.length);
+  const status = $derived(groupExpirationStatus(group));
   const label = $derived(
-    batches > 1
-      ? `${group.name}, ${quantity}, ${formatBatchCount(batches)}`
-      : `${group.name}, ${quantity}`,
+    [
+      group.name,
+      quantity,
+      batches > 1 && formatBatchCount(batches),
+      isExpirationWarning(status) && EXPIRATION_LABELS[status],
+    ]
+      .filter(Boolean)
+      .join(', '),
   );
 </script>
 
@@ -45,11 +57,12 @@
     </span>
     {#if batches > 1}
       <span
-        class="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-none font-semibold text-primary-foreground tabular-nums"
+        class="absolute right-1 bottom-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-none font-semibold text-primary-foreground tabular-nums"
       >
         {batches}
       </span>
     {/if}
+    <ExpirationBadge {status} marker class="absolute -top-1.5 -right-1.5" />
   </span>
   <span
     class={cn(

@@ -1,8 +1,10 @@
 <script lang="ts">
   import { tick } from 'svelte';
+  import { expiringFoodItems } from '../../lib/expiration.js';
   import { foodGroupKey, groupFoodItems, type FoodGroup } from '../../lib/food-groups.js';
   import { scrollWithin } from '../../lib/scroll-within.js';
   import type { FoodCategory, FoodItem } from '../../types/food-item.js';
+  import ExpiringFoodCard from '../expiring-food-card/expiring-food-card.svelte';
   import DeleteFoodItemDialog from '../delete-food-item-dialog/delete-food-item-dialog.svelte';
   import FoodItemDialog from '../food-item-dialog/food-item-dialog.svelte';
   import FoodItemList from '../food-item-list/food-item-list.svelte';
@@ -27,6 +29,7 @@
   let activeItem = $state<FoodItem | null>(null);
 
   const groups = $derived(groupFoodItems(items));
+  const expiring = $derived(expiringFoodItems(items));
 
   const groupsByCategory = $derived.by(() => {
     const byCategory = new Map<FoodCategory, FoodGroup[]>();
@@ -46,6 +49,11 @@
   function openDelete(item: FoodItem) {
     activeItem = item;
     deleteOpen = true;
+  }
+
+  function selectItem(item: FoodItem) {
+    const group = groups.find(({ key }) => key === foodGroupKey(item));
+    if (group) select(group, 'list');
   }
 
   async function select(group: FoodGroup, source: 'fridge' | 'list') {
@@ -81,7 +89,7 @@
     onadd={(category) => onadd(category)}
   />
 
-  <div class="min-w-0 xl:sticky xl:top-6">
+  <div class="flex min-w-0 flex-col gap-6 xl:sticky xl:top-6">
     <FoodItemList
       {groups}
       {selectedKey}
@@ -90,6 +98,7 @@
       onedit={openEdit}
       ondelete={openDelete}
     />
+    <ExpiringFoodCard items={expiring} {selectedKey} onselect={selectItem} />
   </div>
 </div>
 

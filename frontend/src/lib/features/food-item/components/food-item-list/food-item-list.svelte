@@ -9,9 +9,14 @@
   import { cn } from '#lib/shared/utils.js';
   import { formatExpiration } from '../../lib/expiration.js';
   import { FOOD_CATEGORIES } from '../../lib/food-categories.js';
-  import { formatGroupQuantity, type FoodGroup } from '../../lib/food-groups.js';
+  import {
+    formatGroupQuantity,
+    groupExpirationStatus,
+    type FoodGroup,
+  } from '../../lib/food-groups.js';
   import { formatBatchCount, formatQuantity } from '../../lib/food-units.js';
   import type { FoodItem } from '../../types/food-item.js';
+  import ExpirationBadge from '../expiration-badge/expiration-badge.svelte';
 
   let {
     groups,
@@ -51,7 +56,7 @@
         </Empty.Header>
       </Empty.Root>
     {:else}
-      <div data-food-list class="max-h-[34rem] overflow-y-auto scrollbar-soft">
+      <div data-food-list class="max-h-[26rem] overflow-y-auto scrollbar-soft">
         <ul class="flex flex-col gap-1.5 px-(--card-spacing) py-1">
           {#each groups as group (group.key)}
             {@const meta = FOOD_CATEGORIES[group.category]}
@@ -89,6 +94,7 @@
                     {/if}
                   </span>
                 </span>
+                <ExpirationBadge status={groupExpirationStatus(group)} />
                 {#if expandable}
                   <ChevronDownIcon
                     class={cn(
@@ -102,7 +108,12 @@
               {#if selected && expandable}
                 <ul class="mx-3 mb-2 flex flex-col border-t pt-1">
                   {#each group.items as item (item.id)}
-                    <li class="flex min-h-9 items-center gap-3 py-0.5 pl-12 text-xs">
+                    <li class="relative flex min-h-9 items-center gap-3 py-0.5 pl-12 text-xs">
+                      <ExpirationBadge
+                        status={item.expirationStatus}
+                        marker
+                        class="absolute left-5"
+                      />
                       <span class="font-medium tabular-nums">
                         {formatQuantity(item.quantity, item.unit)}
                       </span>

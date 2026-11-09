@@ -6,3 +6,7 @@ export { isDefaultFoodItemQuery, parseFoodItemQuery } from './lib/food-item-quer
 export { FOOD_ITEMS_DEPENDENCY } from './lib/food-item-routes.js';
 export { formatFoodCount } from './lib/food-units.js';
 export type { FoodCategory, FoodItem, FoodItemQuery } from './types/food-item.js';
+export { currentDate, formatExpiration } from './lib/expiration.js';
+export { FOOD_UNIT_LABELS, FOOD_UNITS, formatQuantity } from './lib/food-units.js';
+export type { FoodUnit } from './types/food-item.js';
+export { createFoodItemSchema } from './validations/food-item.js';

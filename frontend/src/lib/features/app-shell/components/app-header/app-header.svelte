@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { InvitationInbox } from '#lib/features/household-invitation/index.js';
   import * as Sidebar from '#lib/shared/ui/sidebar/index.js';
   import UserProfile from '../user-profile/user-profile.svelte';
 
@@ -15,5 +16,8 @@
       {/if}
     </div>
   </div>
-  <UserProfile />
+  <div class="flex shrink-0 items-center gap-3">
+    <InvitationInbox />
+    <UserProfile />
+  </div>
 </header>

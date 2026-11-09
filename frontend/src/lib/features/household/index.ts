@@ -1,6 +1,8 @@
 export { householdApi } from './api/household.api.js';
 export { default as CreateHouseholdForm } from './components/create-household-form/create-household-form.svelte';
 export { default as HouseholdSwitcher } from './components/household-switcher/household-switcher.svelte';
+export { householdSummary, ROLE_LABELS } from './lib/household-labels.js';
 export { lastHousehold } from './lib/last-household.js';
 export { HOUSEHOLDS_DEPENDENCY, householdPath } from './lib/household-routes.js';
-export type { Household, HouseholdRole } from './types/household.js';
+export { default as HouseholdMembersCard } from './components/household-members-card/household-members-card.svelte';
+export type { Household, HouseholdMember, HouseholdRole } from './types/household.js';

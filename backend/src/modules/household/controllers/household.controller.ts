@@ -12,7 +12,11 @@ import { CurrentHouseholdMember, User } from '../../../utils/decorators/index.js
 import { HouseholdGuard, JwtAuthGuard } from '../../../utils/guards/index.js';
 import { HOUSEHOLD_ID_PARAM } from '../../../utils/constants/index.js';
 import type { JwtPayload } from '../../auth/interfaces/index.js';
-import { CreateHouseholdRequest, HouseholdResponse } from '../dtos/index.js';
+import {
+  CreateHouseholdRequest,
+  HouseholdMemberResponse,
+  HouseholdResponse,
+} from '../dtos/index.js';
 import { HouseholdService } from '../services/household.service.js';
 
 @ApiTags('households')
@@ -45,5 +49,15 @@ export class HouseholdController {
     @CurrentHouseholdMember() membership: HouseholdMemberEntity,
   ): Promise<HouseholdResponse> {
     return this.householdService.getHousehold(membership);
+  }
+
+  @Get(`:${HOUSEHOLD_ID_PARAM}/members`)
+  @ApiParam({ name: HOUSEHOLD_ID_PARAM, format: 'uuid' })
+  @ApiOkResponse({ type: HouseholdMemberResponse, isArray: true })
+  @ApiNotFoundResponse({ description: 'Household does not exist or the user is not a member' })
+  getMembers(
+    @CurrentHouseholdMember() membership: HouseholdMemberEntity,
+  ): Promise<HouseholdMemberResponse[]> {
+    return this.householdService.getMembers(membership.householdId);
   }
 }

@@ -8,6 +8,12 @@ export interface Household {
   createdAt: string;
 }
 
+export interface HouseholdMember {
+  id: string;
+  role: HouseholdRole;
+  user: { id: string; name: string; email: string };
+}
+
 export interface CreateHouseholdPayload {
   name: string;
 }

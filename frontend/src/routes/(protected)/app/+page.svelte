@@ -3,6 +3,7 @@
   import { AppHeader } from '#lib/features/app-shell/index.js';
   import { auth } from '#lib/features/auth/index.js';
   import { CreateHouseholdForm } from '#lib/features/household/index.js';
+  import { ReceivedInvitationsList } from '#lib/features/household-invitation/index.js';
   import * as Empty from '#lib/shared/ui/empty/index.js';
 
   const firstName = $derived(auth.user?.name.trim().split(/\s+/)[0] ?? '');
@@ -13,6 +14,8 @@
 </svelte:head>
 
 <AppHeader title={`Zdravo, ${firstName}!`} description="Še nisi član nobenega gospodinjstva" />
+
+<ReceivedInvitationsList />
 
 <Empty.Root class="border bg-card">
   <Empty.Header>

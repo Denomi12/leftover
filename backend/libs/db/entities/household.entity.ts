@@ -7,6 +7,7 @@ import {
   type Relation,
 } from 'typeorm';
 import { HouseholdMemberEntity } from './household-member.entity.js';
+import { HouseholdInvitationEntity } from './household-invitation.entity.js';
 import { FoodItemEntity } from './food-item.entity.js';
 import { PlannedMealEntity } from './planned-meal.entity.js';
 import { ShoppingItemEntity } from './shopping-item.entity.js';
@@ -24,6 +25,9 @@ export class HouseholdEntity {
 
   @OneToMany(() => HouseholdMemberEntity, (member) => member.household)
   members?: Relation<HouseholdMemberEntity[]>;
+
+  @OneToMany(() => HouseholdInvitationEntity, (invitation) => invitation.household)
+  invitations?: Relation<HouseholdInvitationEntity[]>;
 
   @OneToMany(() => FoodItemEntity, (item) => item.household)
   foodItems?: Relation<FoodItemEntity[]>;

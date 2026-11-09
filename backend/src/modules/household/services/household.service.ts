@@ -1,8 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { HouseholdMemberEntity } from '../../../../libs/db/entities/index.js';
 import { HouseholdRole } from '../../../utils/types/household-role.type.js';
-import { CreateHouseholdRequest, HouseholdResponse } from '../dtos/index.js';
-import { toHouseholdResponse } from '../mappers/household.mapper.js';
+import {
+  CreateHouseholdRequest,
+  HouseholdMemberResponse,
+  HouseholdResponse,
+} from '../dtos/index.js';
+import { toHouseholdMemberResponse, toHouseholdResponse } from '../mappers/household.mapper.js';
 import { HouseholdRepository } from '../repository/household.repository.js';
 
 @Injectable()
@@ -36,5 +40,14 @@ export class HouseholdService {
 
     const memberCounts = await this.householdRepository.countMembers([household.id]);
     return toHouseholdResponse(household, membership.role, memberCounts.get(household.id) ?? 0);
+  }
+
+  async getMembers(householdId: string): Promise<HouseholdMemberResponse[]> {
+    const members = await this.householdRepository.findMembersOfHousehold(householdId);
+    return members
+      .sort(
+        (a, b) => Number(b.role === HouseholdRole.Owner) - Number(a.role === HouseholdRole.Owner),
+      )
+      .map(toHouseholdMemberResponse);
   }
 }

@@ -2,11 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { CreatePlannedMealRequest, PlannedMealResponse } from '../dtos/index.js';
 import { toPlannedMealResponse } from '../mappers/planned-meal.mapper.js';
 import { PlannedMealRepository } from '../repository/planned-meal.repository.js';
+import { ShoppingItemService } from '../../shopping-item/services/shopping-item.service.js';
 import { buildStock, type Stock } from '../utils/stock.js';
 
 @Injectable()
 export class PlannedMealService {
-  constructor(private readonly plannedMealRepository: PlannedMealRepository) {}
+  constructor(
+    private readonly plannedMealRepository: PlannedMealRepository,
+    private readonly shoppingItemService: ShoppingItemService,
+  ) {}
 
   async getPlannedMeals(householdId: string): Promise<PlannedMealResponse[]> {
     const [meals, stock] = await Promise.all([
@@ -28,6 +32,7 @@ export class PlannedMealService {
         unit: ingredient.unit,
       })),
     );
+    await this.shoppingItemService.addMissingIngredients(householdId);
     return toPlannedMealResponse(meal, await this.getStock(householdId));
   }
 

@@ -6,6 +6,7 @@ import { HouseholdModule } from './modules/household/household.module.js';
 import { HouseholdInvitationModule } from './modules/household-invitation/household-invitation.module.js';
 import { FoodItemModule } from './modules/food-item/food-item.module.js';
 import { PlannedMealModule } from './modules/planned-meal/planned-meal.module.js';
+import { ShoppingItemModule } from './modules/shopping-item/shopping-item.module.js';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PlannedMealModule } from './modules/planned-meal/planned-meal.module.js
     HouseholdInvitationModule,
     FoodItemModule,
     PlannedMealModule,
+    ShoppingItemModule,
   ],
 })
 export class AppModule {}

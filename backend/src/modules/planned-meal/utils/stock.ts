@@ -19,11 +19,11 @@ export interface StockAmount {
 
 export type Stock = Map<string, number>;
 
-function stockKey(name: string, unit: FoodUnit): string {
+export function stockKey(name: string, unit: FoodUnit): string {
   return `${name.trim().toLocaleLowerCase('sl')}|${UNIT_SCALE[unit].dimension}`;
 }
 
-function toBaseThousandths(quantity: string | number, unit: FoodUnit): number {
+export function toBaseThousandths(quantity: string | number, unit: FoodUnit): number {
   return Math.round(Number(quantity) * THOUSANDTHS) * UNIT_SCALE[unit].factor;
 }
 
@@ -42,5 +42,9 @@ export function getMissingQuantity(stock: Stock, { name, quantity, unit }: Stock
   if (missing <= 0) {
     return 0;
   }
-  return Math.ceil(missing / UNIT_SCALE[unit].factor) / THOUSANDTHS;
+  return fromBaseThousandths(missing, unit);
+}
+
+export function fromBaseThousandths(base: number, unit: FoodUnit): number {
+  return Math.ceil(base / UNIT_SCALE[unit].factor) / THOUSANDTHS;
 }

@@ -15,7 +15,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Zaloga', icon: ArchiveIcon, path: '' },
   { label: 'Načrt obrokov', icon: CalendarDaysIcon, path: '/nacrt-obrokov' },
-  { label: 'Nakupovalni seznam', icon: ShoppingCartIcon },
+  { label: 'Nakupovalni seznam', icon: ShoppingCartIcon, path: '/nakupovalni-seznam' },
   { label: 'Statistika', icon: ChartColumnIcon },
   { label: 'Zgodovina', icon: HistoryIcon },
   { label: 'Gospodinjstvo', icon: UsersIcon, path: '/gospodinjstvo' },

@@ -8,7 +8,9 @@
   import { formatDay, formatMealCount, groupMealsByDay } from '../../lib/meal-plan.js';
   import type { PlannedMeal } from '../../types/planned-meal.js';
   import CompleteMealDialog from '../complete-meal-dialog/complete-meal-dialog.svelte';
+  import DeleteMealDialog from '../delete-meal-dialog/delete-meal-dialog.svelte';
   import MealCard from '../meal-card/meal-card.svelte';
+  import PlannedMealDialog from '../planned-meal-dialog/planned-meal-dialog.svelte';
 
   let {
     meals,
@@ -18,13 +20,25 @@
   }: { meals: PlannedMeal[]; householdId: string; canEdit: boolean; onadd: () => void } = $props();
 
   let completeOpen = $state(false);
-  let completingMeal = $state<PlannedMeal | null>(null);
+  let editOpen = $state(false);
+  let deleteOpen = $state(false);
+  let activeMeal = $state<PlannedMeal | null>(null);
 
   const days = $derived(groupMealsByDay(meals));
 
   function openComplete(meal: PlannedMeal) {
-    completingMeal = meal;
+    activeMeal = meal;
     completeOpen = true;
+  }
+
+  function openEdit(meal: PlannedMeal) {
+    activeMeal = meal;
+    editOpen = true;
+  }
+
+  function openDelete(meal: PlannedMeal) {
+    activeMeal = meal;
+    deleteOpen = true;
   }
 </script>
 
@@ -70,7 +84,13 @@
         </header>
         <div class="grid items-start gap-4 sm:grid-cols-2 2xl:grid-cols-3">
           {#each day.meals as meal (meal.id)}
-            <MealCard {meal} {canEdit} oncomplete={openComplete} />
+            <MealCard
+              {meal}
+              {canEdit}
+              oncomplete={openComplete}
+              onedit={openEdit}
+              ondelete={openDelete}
+            />
           {/each}
         </div>
       </section>
@@ -79,5 +99,7 @@
 {/if}
 
 {#if canEdit}
-  <CompleteMealDialog bind:open={completeOpen} {householdId} meal={completingMeal} />
+  <CompleteMealDialog bind:open={completeOpen} {householdId} meal={activeMeal} />
+  <PlannedMealDialog bind:open={editOpen} {householdId} meal={activeMeal} />
+  <DeleteMealDialog bind:open={deleteOpen} {householdId} meal={activeMeal} />
 {/if}

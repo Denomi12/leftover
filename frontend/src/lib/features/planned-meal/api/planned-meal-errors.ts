@@ -1,7 +1,8 @@
 import { ApiError, NETWORK_ERROR_STATUS } from '#lib/shared/lib/api.js';
 
-export function mapCreatePlannedMealError(error: unknown): string {
-  if (!(error instanceof ApiError)) return 'Obroka ni bilo mogoče shraniti. Poskusi znova.';
+export function mapSavePlannedMealError(error: unknown, editing: boolean): string {
+  const fallback = 'Obroka ni bilo mogoče shraniti. Poskusi znova.';
+  if (!(error instanceof ApiError)) return fallback;
 
   switch (error.status) {
     case NETWORK_ERROR_STATUS:
@@ -9,11 +10,32 @@ export function mapCreatePlannedMealError(error: unknown): string {
     case 400:
       return 'Preveri vnesene podatke.';
     case 403:
-      return 'Kot gost obrokov ne moreš načrtovati.';
+      return editing
+        ? 'Kot gost obrokov ne moreš urejati.'
+        : 'Kot gost obrokov ne moreš načrtovati.';
     case 404:
-      return 'Gospodinjstvo ne obstaja ali vanj nimaš več dostopa.';
+      return editing
+        ? 'Obrok ne obstaja več. Osveži stran.'
+        : 'Gospodinjstvo ne obstaja ali vanj nimaš več dostopa.';
+    case 409:
+      return 'Pripravljenega obroka ni mogoče urejati.';
     default:
-      return 'Obroka ni bilo mogoče shraniti. Poskusi znova.';
+      return fallback;
+  }
+}
+
+export function mapDeletePlannedMealError(error: unknown): string {
+  if (!(error instanceof ApiError)) return 'Obroka ni bilo mogoče odstraniti. Poskusi znova.';
+
+  switch (error.status) {
+    case NETWORK_ERROR_STATUS:
+      return 'Strežnik ni dosegljiv. Preveri povezavo in poskusi znova.';
+    case 403:
+      return 'Kot gost obrokov ne moreš odstranjevati.';
+    case 404:
+      return 'Obrok ne obstaja več.';
+    default:
+      return 'Obroka ni bilo mogoče odstraniti. Poskusi znova.';
   }
 }
 

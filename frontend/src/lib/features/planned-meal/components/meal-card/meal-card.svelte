@@ -2,10 +2,14 @@
   import ChefHatIcon from '@lucide/svelte/icons/chef-hat';
   import CircleAlertIcon from '@lucide/svelte/icons/circle-alert';
   import CircleCheckIcon from '@lucide/svelte/icons/circle-check';
+  import EllipsisVerticalIcon from '@lucide/svelte/icons/ellipsis-vertical';
+  import PencilIcon from '@lucide/svelte/icons/pencil';
+  import Trash2Icon from '@lucide/svelte/icons/trash-2';
   import { formatQuantity } from '#lib/features/food-item/index.js';
   import { Badge } from '#lib/shared/ui/badge/index.js';
   import { Button } from '#lib/shared/ui/button/index.js';
   import * as Card from '#lib/shared/ui/card/index.js';
+  import * as DropdownMenu from '#lib/shared/ui/dropdown-menu/index.js';
   import { cn } from '#lib/shared/utils.js';
   import { formatIngredientCount } from '../../lib/meal-plan.js';
   import type { PlannedMeal } from '../../types/planned-meal.js';
@@ -14,7 +18,15 @@
     meal,
     canEdit,
     oncomplete,
-  }: { meal: PlannedMeal; canEdit: boolean; oncomplete: (meal: PlannedMeal) => void } = $props();
+    onedit,
+    ondelete,
+  }: {
+    meal: PlannedMeal;
+    canEdit: boolean;
+    oncomplete: (meal: PlannedMeal) => void;
+    onedit: (meal: PlannedMeal) => void;
+    ondelete: (meal: PlannedMeal) => void;
+  } = $props();
 
   const missing = $derived(meal.ingredients.filter((item) => item.stockStatus === 'MISSING'));
 </script>
@@ -36,6 +48,38 @@
     >
       {meal.name}
     </Card.Title>
+    {#if canEdit}
+      <Card.Action>
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger>
+            {#snippet child({ props })}
+              <Button
+                {...props}
+                variant="ghost"
+                size="icon-sm"
+                class="-mt-1 -mr-2 text-muted-foreground"
+                aria-label={`Možnosti za ${meal.name}`}
+              >
+                <EllipsisVerticalIcon />
+              </Button>
+            {/snippet}
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content align="end" class="w-40">
+            {#if !meal.completed}
+              <DropdownMenu.Item onclick={() => onedit(meal)}>
+                <PencilIcon />
+                Uredi
+              </DropdownMenu.Item>
+              <DropdownMenu.Separator />
+            {/if}
+            <DropdownMenu.Item variant="destructive" onclick={() => ondelete(meal)}>
+              <Trash2Icon />
+              Odstrani
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
+      </Card.Action>
+    {/if}
     {#if meal.completed}
       <Badge variant="outline">
         <ChefHatIcon data-icon="inline-start" />

@@ -39,7 +39,7 @@ Predstavlja živilo v zalogi gospodinjstva.
 - `name`
 - `quantity`
 - `unit` – `kos`, `g`, `kg`, `ml`, `l` ali `porcija`
-- `category` – mesto v hladilniku: `FRUIT`, `DAIRY`, `MEAT_AND_FISH`, `PREPARED_MEALS`, `SPREADS`, `VEGETABLES`, `SALAD`, `EGGS`, `SAUCES` ali `DRINKS`
+- `category` – mesto v hladilniku: `FRUIT`, `DAIRY`, `MEAT_AND_FISH`, `PREPARED_MEALS`, `SPREADS`, `VEGETABLES`, `EGGS`, `SAUCES` ali `DRINKS`
 - `expiration_date`
 
 ### PlannedMeal

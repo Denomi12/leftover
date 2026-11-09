@@ -132,3 +132,12 @@
     @apply font-sans;
   }
 }
+
+@utility scrollbar-soft {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--primary) 25%, transparent) transparent;
+
+  &:hover {
+    scrollbar-color: color-mix(in oklab, var(--primary) 45%, transparent) transparent;
+  }
+}

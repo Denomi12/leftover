@@ -5,7 +5,6 @@ export enum FoodCategory {
   PreparedMeals = 'PREPARED_MEALS',
   Spreads = 'SPREADS',
   Vegetables = 'VEGETABLES',
-  Salad = 'SALAD',
   Eggs = 'EGGS',
   Sauces = 'SAUCES',
   Drinks = 'DRINKS',

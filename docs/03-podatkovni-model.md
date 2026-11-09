@@ -38,7 +38,8 @@ Predstavlja živilo v zalogi gospodinjstva.
 - `household_id`
 - `name`
 - `quantity`
-- `unit`
+- `unit` – `kos`, `g`, `kg`, `ml`, `l` ali `porcija`
+- `category` – mesto v hladilniku: `FRUIT`, `DAIRY`, `MEAT_AND_FISH`, `PREPARED_MEALS`, `SPREADS`, `VEGETABLES`, `EGGS`, `SAUCES` ali `DRINKS`
 - `expiration_date`
 
 ### PlannedMeal
@@ -117,6 +118,7 @@ erDiagram
         string name
         decimal quantity
         string unit
+        string category
         date expiration_date
     }
 

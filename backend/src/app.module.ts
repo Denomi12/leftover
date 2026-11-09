@@ -4,6 +4,7 @@ import { DbConfigModule } from '../libs/db/db-config.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { HouseholdModule } from './modules/household/household.module.js';
 import { HouseholdInvitationModule } from './modules/household-invitation/household-invitation.module.js';
+import { FoodItemModule } from './modules/food-item/food-item.module.js';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { HouseholdInvitationModule } from './modules/household-invitation/househ
     AuthModule,
     HouseholdModule,
     HouseholdInvitationModule,
+    FoodItemModule,
   ],
 })
 export class AppModule {}

@@ -1,9 +1,11 @@
 <script lang="ts">
   import { InvitationInbox } from '#lib/features/household-invitation/index.js';
   import * as Sidebar from '#lib/shared/ui/sidebar/index.js';
+  import type { Snippet } from 'svelte';
   import UserProfile from '../user-profile/user-profile.svelte';
 
-  let { title, description }: { title: string; description?: string } = $props();
+  let { title, description, actions }: { title: string; description?: string; actions?: Snippet } =
+    $props();
 </script>
 
 <header class="flex items-start justify-between gap-4">
@@ -17,6 +19,7 @@
     </div>
   </div>
   <div class="flex shrink-0 items-center gap-3">
+    {@render actions?.()}
     <InvitationInbox />
     <UserProfile />
   </div>

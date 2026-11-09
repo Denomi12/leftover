@@ -13,8 +13,10 @@ type PlannedMealData = Pick<PlannedMealEntity, 'householdId' | 'name' | 'date'>;
 
 type MealIngredientData = Pick<MealIngredientEntity, 'name' | 'quantity' | 'unit'>;
 
-export type CompleteMealResult =
-  | { status: 'completed'; meal: PlannedMealEntity }
+export type PlannedMealChanges = Partial<Pick<PlannedMealEntity, 'name' | 'date'>>;
+
+export type MealChangeResult =
+  | { status: 'changed'; meal: PlannedMealEntity }
   | { status: 'not-found' }
   | { status: 'already-completed' };
 
@@ -59,7 +61,7 @@ export class PlannedMealRepository {
     });
   }
 
-  complete(householdId: string, plannedMealId: string): Promise<CompleteMealResult> {
+  complete(householdId: string, plannedMealId: string): Promise<MealChangeResult> {
     return this.plannedMealRepository.manager.transaction(async (manager) => {
       await manager.findOne(HouseholdEntity, {
         where: { id: householdId },
@@ -102,7 +104,52 @@ export class PlannedMealRepository {
       await manager.update(PlannedMealEntity, { id: meal.id }, { completed: true });
       meal.completed = true;
       meal.ingredients = ingredients;
-      return { status: 'completed', meal };
+      return { status: 'changed', meal };
     });
+  }
+
+  update(
+    householdId: string,
+    plannedMealId: string,
+    changes: PlannedMealChanges,
+    ingredients: MealIngredientData[] | undefined,
+  ): Promise<MealChangeResult> {
+    return this.plannedMealRepository.manager.transaction(async (manager) => {
+      const meal = await manager.findOne(PlannedMealEntity, {
+        where: { id: plannedMealId, householdId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!meal) {
+        return { status: 'not-found' };
+      }
+      if (meal.completed) {
+        return { status: 'already-completed' };
+      }
+
+      if (Object.keys(changes).length > 0) {
+        await manager.update(PlannedMealEntity, { id: meal.id }, changes);
+        Object.assign(meal, changes);
+      }
+
+      if (ingredients) {
+        await manager.delete(MealIngredientEntity, { plannedMealId });
+        await manager.save(
+          ingredients.map((ingredient) =>
+            manager.create(MealIngredientEntity, { ...ingredient, plannedMealId }),
+          ),
+        );
+      }
+
+      meal.ingredients = await manager.find(MealIngredientEntity, {
+        where: { plannedMealId },
+        order: { name: 'ASC', id: 'ASC' },
+      });
+      return { status: 'changed', meal };
+    });
+  }
+
+  async delete(householdId: string, plannedMealId: string): Promise<boolean> {
+    const result = await this.plannedMealRepository.delete({ id: plannedMealId, householdId });
+    return (result.affected ?? 0) > 0;
   }
 }
